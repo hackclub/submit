@@ -1,0 +1,64 @@
+---
+title: 'Configuration'
+description: 'Every Submit YSWS needs a program configuration record with the core configuration settings. Learn more about the [properties](#properties) below.'
+icon: 'gear'
+---
+
+## Properties
+
+<ResponseField name="slug" type="string" required>
+Slug of your YSWS. Used for the URL.
+
+Example: `demotown`
+
+</ResponseField>
+
+<ResponseField name="name" type="string" required>
+  The name of your YSWS. Used for display purposes.
+
+Example: `Demotown`
+
+</ResponseField>
+
+<ResponseField name="form url" type="url" required>
+  The URL of the Fillout/Airtable form to be used for submissions.
+
+  Example: `https://forms.hackclub.com/yourprogramslug`
+</ResponseField>
+
+<ResponseField name="identity_scopes" type="array" required>
+  The identity scopes you want to request from participants. Only request the
+  ones you need.
+
+  Example: `["email", "first_name", "last_name"]`
+
+  <Expandable title="Options">
+    - `first_name`
+    - `last_name`
+    - `email`
+
+    The following are gated to admins to enable:
+
+    - `birthday`
+    - `phone_number`
+    - `addresses`
+
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="colors" type="Colors" required>
+  Hex color codes for your global theme
+  <Expandable title="Colors">
+    <ResponseField name="Background Primary" type="hex" required></ResponseField>
+    <ResponseField name="Background Secondary" type="hex" required></ResponseField>
+    <ResponseField name="Foreground Primary" type="hex" required></ResponseField>
+    <ResponseField name="Foreground Secondary" type="hex" required></ResponseField>
+    <ResponseField name="Accent" type="hex" required></ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="form mappings" type="array">
+  Map identity fields to form fields. For Airtable, use prefill names with + instead of spaces. Not required for Fillout.
+
+  Example: `{"first_name":"First+Name","last_name":"Last+Name"}`.
+</ResponseField>

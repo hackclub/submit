@@ -1,0 +1,79 @@
+<div class="grow text-left py-4 md:py-10 space-y-4 md:space-y-8 mx-2 md:mx-8">
+  <section>
+    <h1 class="text-2xl md:text-4xl font-bold"><%= current_admin&.ysws_author? ? 'Your' : 'All' %> Programs</h1>
+  </section>
+
+  <section class="flex flex-col items-start space-y-2 md:space-y-4">
+    <div class="flex space-x-2 md:space-x-3">
+      <%= render "shared/button", type: "primary", link: new_admin_program_path do %>
+        Create new program
+      <%end%>
+    </div>
+  </section>
+
+  <section class="space-y-1 md:space-y-2">
+    <div class="grow flex flex-col space-y-0.5 md:space-y-1">
+      <h2 class="text-lg md:text-3xl font-bold">Programs</h2>
+      <p class="text-xs md:text-sm text-default-questions/75">You can click any of these to copy</p>
+    </div>
+    <div class="overflow-x-auto">
+      <div class="min-w-2xl">
+        <div class="grid grid-cols-12 w-full py-0.5 md:py-1 my-0.5 md:my-1 font-bold border-b border-b-default-questions/20 gap-x-1 md:gap-x-2 text-xs md:text-base">
+          <p>Slug</p>
+          <p>Name</p>
+          <p class="col-span-2">Form URL</p>
+          <p class="col-span-2">Owner</p>
+          <p>Status</p>
+          <p class="col-span-2">API Key</p>
+          <p>Updated At (UTC)</p>
+          <p class="col-span-2 text-right">Actions</p>
+        </div>
+        <div class="grid grid-cols-12 w-full border-b-default-questions/20 gap-y-0.5 md:gap-y-1 py-0.5 md:py-1 gap-x-1 md:gap-x-2 text-xs md:text-base">
+          <% @programs.each do |program| %>
+            <% url = ENV["NEXTAUTH_URL"].to_s.chomp("/") + "/" + program.slug.to_s %>
+            <div class="wrap-anywhere cursor-pointer hover:underline px-1" onclick="navigator.clipboard.writeText('<%= j url %>')" title="Click to copy"><%= program.slug %></div>
+            <div class="wrap-anywhere cursor-pointer hover:underline px-1" onclick="navigator.clipboard.writeText('<%= j program.name %>')" title="Click to copy"><%= program.name %></div>
+            <div class="col-span-2 wrap-anywhere cursor-pointer hover:underline px-1" onclick="navigator.clipboard.writeText('<%= j program.form_url %>')" title="Click to copy"><%= program.form_url %></div>
+            <div class="col-span-2 wrap-anywhere cursor-pointer hover:underline px-1" onclick="navigator.clipboard.writeText('<%= j (program.owner_email.presence || '—') %>')" title="Click to copy"><%= program.owner_email.presence || '—' %><%= program.owner_email == current_admin.email && !current_admin&.ysws_author? ? ' (you)' : '' %></div>
+            <div class="flex items-start cursor-pointer hover:underline px-1" onclick="navigator.clipboard.writeText('<%= program.active? ? 'Active' : 'Inactive' %>')" title="Click to copy">
+              <% if program.active? %>
+                <span class="text-xs bg-green-400/20 rounded-full px-3 py-1 text-green-200">Active</span>
+              <% else %>
+                <span class="text-xs bg-yellow-400/20 rounded-full px-3 py-1 text-yellow-200">Inactive</span>
+              <% end %>
+            </div>
+            <div class="col-span-2 wrap-anywhere cursor-pointer hover:underline px-1 font-mono text-xs" onclick="navigator.clipboard.writeText('<%= j program.api_key %>')" title="Click to copy API key">
+              <span class="bg-gray-100 text-gray-800 px-2 py-1 rounded">
+                <%= program.api_key ? "#{program.api_key[0..7]}...#{program.api_key[-4..-1]}" : '—' %>
+              </span>
+            </div>
+            <div class="wrap-anywhere cursor-pointer hover:bg-gray-100 px-1" onclick="navigator.clipboard.writeText('<%= j program.updated_at&.utc&.strftime('%Y-%m-%d %H:%M:%S') %>')" title="Click to copy"><%= program.updated_at&.utc&.strftime('%Y-%m-%d %H:%M:%S') %></div>
+            <div class="col-span-2 wrap-anywhere text-right space-x-1">
+              <div class="inline">
+                <% if current_admin&.superadmin? || current_admin&.admin? || (current_admin&.ysws_author? && program.owner_email == current_admin.email) %>
+                  <% if program.active? %>
+                    <%= render "shared/button", link: deactivate_admin_program_path(program), method: :post, class: "text-orange-300 underline" do %>
+                      Deactivate
+                    <% end %>
+                  <% else %>
+                    <%= render "shared/button", link: activate_admin_program_path(program), method: :post, class: "text-green-600 underline" do %>
+                      Activate
+                    <% end %>
+                  <% end %>
+                <% end %>
+              </div>
+              <% if !program.nil? %>
+                <a class="text-blue-400 underline" href="<%= edit_admin_program_path(program) %>">Edit</a>
+                <% if superadmin? %>
+                  <div class="inline-flex rounded border-2 border-red-400 border-dashed items-center space-x-1 px-1">
+                    <%= button_to 'Delete', admin_program_path(program), method: :delete, form: { data: { turbo_confirm: 'Delete program?' } }, class: 'text-red-400 underline' %>
+                  </div>
+                <% end %>
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>

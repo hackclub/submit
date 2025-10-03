@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Hack Club Submit Admin Dashboard</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="color-scheme" content="dark light" />
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    <%= stylesheet_link_tag "tailwind", "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
+    <%= Sentry.get_trace_propagation_meta.html_safe %>
+  </head>
+  <body class="border-2 md:border-4 border-dashed border-orange-300 box-border text-sm md:text-base">
+  <%= render 'application/helpscout_beacon' %>
+    <header class="h-30 md:h-20 flex justify-center items-center px-4 -mt-[4px] -mx-[4px]">
+      <div class="max-w-7xl grow mx-2 md:mx-18 grid grid-cols-1 md:grid-cols-3 items-center gap-2 md:gap-0 text-center md:text-left">
+        <a href="<%= current_admin&.ysws_author? ? admin_programs_path : admin_root_path %>" class="text-base md:text-xl font-medium flex space-x-2 md:space-x-4 items-center justify-center md:justify-start" aria-label="Hack Club Submit home">
+          <p class="text-orange-300">Admin Dashboard<%= Rails.env.development? ? ' (DEVELOPMENT)' : '' %></p>
+        </a>
+        <div class="grow text-xs md:text-sm space-x-1.5 md:space-x-3 text-default-questions/75 flex flex-row items-stretch justify-center md:justify-start">
+          <% unless current_admin&.ysws_author? %>
+            <a href="<%= admin_root_path %>">Dashboard</a>
+            <a href="<%= admin_verification_attempts_path %>">Sessions</a>
+          <% end %>
+          <a href="<%= admin_programs_path %>">Programs</a>
+          <a href="https://docs.submit.hackclub.com">Docs</a>
+          <% if superadmin? %>
+            <a href="<%= admin_users_path %>" class="border border-red-400 text-red-400 rounded border-dashed px-1.5 py-0.5 inline-flex justify-center">Admins</a>
+          <% end %>
+        </div>
+        <div class="text-xs flex items-center justify-center md:justify-end text-default-questions/75 space-x-2">
+          <%= session[:admin_email] %>
+          <%= button_to 'Logout', admin_logout_path, method: :delete, class: 'text-orange-300 bg-orange-300/10 py-0.5 px-1.5 border rounded border-dashed ml-2 md:ml-4' %>
+        </div>
+      </div>
+    </header>
+    <main class="grow flex flex-col items-center w-full px-4" id="main-content">
+      <div class="grow max-w-6xl w-full flex flex-col mx-2 md:mx-8">
+        <div class="fixed top-2 md:top-4 right-2 md:right-4 space-y-1 md:space-y-2 z-50" data-controller="flash">
+          <% if flash[:success] %>
+            <div class="bg-green-200 text-green-800 py-1 px-2 rounded flex text-xs md:text-sm space-x-1 cursor-pointer transition-all duration-300"
+                 role="status"
+                 data-flash-target="message"
+                 data-action="click->flash#dismiss">
+              <%= inline_svg 'success.svg', class: 'size-5' %>
+              <p><%= flash[:success] %></p>
+            </div>
+          <% end %>
+          <% if notice %>
+            <div class="bg-yellow-200 text-yellow-800 py-1 px-2 rounded flex text-xs md:text-sm space-x-1 cursor-pointer transition-all duration-300"
+                 role="status"
+                 data-flash-target="message"
+                 data-action="click->flash#dismiss">
+              <%= inline_svg 'warning.svg', class: 'size-5' %>
+              <p><%= notice %></p>
+            </div>
+          <% end %>
+          <% if alert %>
+            <div class="bg-red-200 text-red-800 py-1 px-2 rounded flex text-xs md:text-sm space-x-1 cursor-pointer transition-all duration-300"
+                 role="status"
+                 data-flash-target="message"
+                 data-action="click->flash#dismiss">
+              <%= inline_svg 'error.svg', class: 'size-5' %>
+              <p><%= alert %></p>
+            </div>
+          <% end %>
+        </div>
+        <%= yield %>
+      </div>
+    </main>
+    <footer class="flex items-center justify-center py-2 md:py-4 text-xs text-default-questions/40 md:text-default-questions/50 mx-2 md:mx-8 w-full">
+      <p>Made with <span class="text-pink-400" aria-hidden="true">❤</span> by Leo from <a href="https://hackclub.com" class="underline">Hack Club</a>. Powered by <a href="https://identity.hackclub.com" class="underline">Hack Club Identity</a>.</p>
+    </footer>
+  </body>
+</html>

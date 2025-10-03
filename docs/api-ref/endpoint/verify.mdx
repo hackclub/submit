@@ -1,0 +1,8 @@
+---
+title: 'Verify session'
+openapi: 'GET /api/verify'
+---
+
+- The `idv_rec` may be provided as a combined token in the form `IDENTITY:SUBMIT`. In that case, the portion after the colon is treated as the one-time `submit_id`.
+- Alternatively, you can pass `idv_rec` and `submit_id` as separate query parameters.
+- Reusing a `submit_id` results in a 410 Gone response.

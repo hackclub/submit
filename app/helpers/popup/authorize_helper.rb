@@ -1,0 +1,2 @@
+module Popup::AuthorizeHelper
+end

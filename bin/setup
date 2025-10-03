@@ -1,0 +1,13 @@
+#!/usr/bin/env ruby
+require 'fileutils'
+include FileUtils
+
+dirs = %w[
+  tmp/pids
+  tmp/cache
+  tmp/sockets
+]
+
+FileUtils.mkdir_p(dirs)
+
+puts "Setup complete"

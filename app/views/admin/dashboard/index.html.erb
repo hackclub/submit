@@ -1,0 +1,227 @@
+<div class="grow text-left py-4 md:py-10 space-y-4 md:space-y-8 mx-2 md:mx-8">
+  <section>
+    <h1 class="text-2xl md:text-4xl font-bold">Admin Dashboard</h1>
+  </section>
+
+  <section class="flex flex-col items-start space-y-2 md:space-y-4">
+    <div class="flex space-x-2 md:space-x-3">
+      <%= render "shared/button", type: "primary", link: admin_verification_attempts_path do %>
+        View all verification attempts
+      <%end%>
+      <%= render 'shared/button', type: 'primary', link: admin_programs_path do %>
+          Manage programs
+      <% end %>
+      <% if superadmin? %>
+        <%= render "shared/button", type: "primary", link: admin_users_path, class: "inline-flex items-center justify-center px-4 py-2 text-md font-medium rounded text-red-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-400 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 border-2 border-red-400 border-dashed bg-red-400/10" do %>
+          Manage admins
+        <%end %>
+      <% end %>
+    </div>
+    
+  </section>
+
+  <section>
+    <h2 class="text-xl md:text-3xl font-bold">Overview</h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-4 pt-1 md:pt-2">
+      <div class="bg-neutral-800 rounded p-2 md:p-4 break-words">
+        <div class="">Total Attempts</div>
+        <p class="text-xl md:text-3xl font-bold break-words"><%= @total_attempts %></p>
+      </div>
+      <div class="rounded p-2 md:p-4 text-green-300 bg-green-500/10 break-words">
+        <div class="">Verified</div>
+        <p class="text-xl md:text-3xl font-bold break-words"><%= @total_verified %></p>
+      </div>
+      <div class="rounded p-2 md:p-4 text-orange-300 bg-orange-400/10 break-words">
+        <div class="">Unverified</div>
+        <p class="text-xl md:text-3xl font-bold break-words"><%= @total_unverified %></p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="text-3xl font-bold grow">Programs Statistics</h2>
+    <div class="overflow-x-auto">
+      <div class="min-w-2xl">
+        <div class="grid grid-cols-7 w-full py-1 my-1 font-bold border-b border-b-default-questions/20 gap-x-2">
+          <p class="col-span-2">Program</p>
+          <p class="text-right">Total</p>
+          <p class="text-right">Verified</p>
+          <p class="text-right">Unverified</p>
+          <p class="col-span-2 text-right">Actions</p>
+        </div>
+        <div class="grid grid-cols-7 w-full border-b-default-questions/20 gap-y-1 py-1 gap-x-2">
+          <% @program_stats.each do |s| %>
+            <% program = Program.where(slug: s.program).first %>
+            <p class="col-span-2 wrap-anywhere">
+              <%= s.program.presence || '—' %><%= program.nil? ? ' (not found)' : program.active? ? '' : ' (inactive)' %>
+            </p>
+            <p class="text-right wrap-anywhere">
+              <%= s.total %>
+            </p>
+            <p class="text-right wrap-anywhere">
+              <%= s.verified_count %>
+            </p>
+            <p class="text-right wrap-anywhere">
+              <%= s.unverified_count %>
+            </p>
+            <div class="col-span-2 text-right space-x-1">
+              <div class="inline">
+                <% if program.nil? %>
+                  <p>Program not found</p>
+                <% elsif program.active? %>
+                  <%= render "shared/button", link: deactivate_from_dash_admin_program_path(program), method: :post, class: "text-orange-300 underline" do %>
+                    Deactivate
+                  <% end %>
+                <% else %>
+                  <%= render "shared/button", link: activate_from_dash_admin_program_path(program), method: :post, class: "text-green-600 underline" do %>
+                    Activate
+                  <% end %>
+                <% end %>
+              </div>
+              <% if !program.nil? %>
+                <a class="text-blue-400 underline" href="<%= edit_admin_program_path(program) %>">Edit</a>
+                <% if superadmin? %>
+                  <div class="inline-flex rounded border-2 border-red-400 border-dashed items-center space-x-1 px-1">
+                    <%= button_to 'Delete', admin_program_path(program), method: :delete, form: { data: { turbo_confirm: 'Delete program?' } }, class: 'text-red-400 underline' %>
+                  </div>
+                <% end %>
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-3xl font-bold grow">Event Log</h2>
+      <div class="text-default-questions/75">
+        Page <%= @events_page %> of <%= @events_total_pages %> • <%= @events_total_count %> total events
+      </div>
+    </div>
+    <div class="overflow-x-auto">
+      <div class="min-w-2xl">
+        <div class="grid grid-cols-10 w-full py-1 my-1 font-bold border-b border-b-default-questions/20 gap-x-2">
+          <p class="col-span-2">Time (UTC)</p>
+          <p class="col-span-2">Type</p>
+          <p class="">Program</p>
+          <p class="">IDV</p>
+          <p class="col-span-3">Email</p>
+          <p class="text-right">Actions</p>
+        </div>
+        <div class="grid grid-cols-10 w-full border-b-default-questions/20 gap-y-1 py-1 gap-x-2">
+          <% @events.each do |e| %>
+            <p class="col-span-2 wrap-anywhere">
+              <%= e.created_at&.utc&.strftime('%Y-%m-%d %H:%M:%S') %>
+            </p>
+            <p class="col-span-2 wrap-anywhere">
+              <%= e.event_type %>
+            </p>
+            <p class="wrap-anywhere">
+              <%= e.program.presence || '—' %>
+            </p>
+            <p class="wrap-anywhere">
+              <%= e.idv_rec.presence || '—' %>
+            </p>
+            <p class="col-span-3 wrap-anywhere">
+              <%= e.email.presence || '—' %>
+            </p>
+            <% dlg_id = "new-event-dialog-#{e.id}" %>
+            <button type="button" class="inline text-blue-400 underline text-right" onclick="document.getElementById('<%= dlg_id %>').showModal()">
+              Details
+            </button>
+          <% end %>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Event Log Pagination -->
+    <% if @events_total_pages > 1 %>
+      <div class="flex justify-between items-center pt-4">
+        <div class="text-default-questions/75">
+          Page <%= @events_page %> of <%= @events_total_pages %> • <%= @events_total_count %> total events
+        </div>
+        <div class="flex space-x-2">
+          <% prev_params = { events_page: [@events_page - 1, 1].max } %>
+          <% next_params = { events_page: [@events_page + 1, @events_total_pages].min } %>
+          <% if @events_page > 1 %>
+            <%= render "shared/button", type: "secondary", link: admin_root_path(prev_params) do %>
+              ← Previous
+            <% end %>
+          <% end %>
+          <% if @events_page < @events_total_pages && @events_total_pages > 0 %>
+            <%= render "shared/button", type: "secondary", link: admin_root_path(next_params) do %>
+              Next →
+            <% end %>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+  </section>
+</div>
+
+<!-- Event Detail Modals -->
+<% @events.each do |e| %>
+  <% dlg_id = "new-event-dialog-#{e.id}" %>
+  <dialog id="<%= dlg_id %>" class="bg-transparent p-0 m-0 w-full h-full" 
+          data-controller="modal" 
+          data-action="click->modal#clickOutside keydown->modal#keydown">
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" 
+         data-modal-target="backdrop">
+      <div class="bg-neutral-800 rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-hidden" 
+           data-action="click->modal#preventClose">
+        <div class="flex items-center justify-between p-6 border-b border-default-questions/75">
+          <h3 class="text-2xl font-bold text-default-questions">Event Details</h3>
+          <button type="button" class="text-neutral-400 hover:text-neutral-300 p-1 outline-0" data-action="click->modal#close">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+        <div class="grid grid-cols-2 text-left p-8 gap-4">
+          <div>
+            <span class="font-medium text-neutral-400">Time (UTC):</span>
+            <span class="ml-2 text-white"><%= e.created_at&.utc&.strftime('%Y-%m-%d %H:%M:%S') %></span>
+          </div>
+          <div>
+            <span class="font-medium text-neutral-400">Type:</span>
+            <span class="ml-2 text-white"><%= e.event_type %></span>
+          </div>
+          <div>
+            <span class="font-medium text-neutral-400">Program:</span>
+            <span class="ml-2 text-white"><%= e.program.presence || '—' %></span>
+          </div>
+          <div>
+            <span class="font-medium text-neutral-400">IDV:</span>
+            <span class="ml-2 text-white"><%= e.idv_rec.presence || '—' %></span>
+          </div>
+          <div>
+            <span class="font-medium text-neutral-400">IP:</span>
+            <span class="ml-2 text-white"><%= e.request_ip.presence || '—' %></span>
+          </div>
+          <div class="col-span-2">
+            <span class="font-medium text-neutral-400">Email:</span>
+            <span class="ml-2 text-white"><%= e.email.presence || '—' %></span>
+          </div>
+          <% if e.metadata&.is_a?(Hash) && (e.metadata['submit_id'] || e.metadata[:submit_id]) %>
+            <div class="col-span-2">
+              <span class="font-medium text-neutral-400">Submit ID:</span>
+              <span class="ml-2 text-white"><%= (e.metadata['submit_id'] || e.metadata[:submit_id]) %></span>
+            </div>
+          <% end %>
+          <div class="col-span-2">
+            <p class="font-medium text-neutral-400">Metadata:</p>
+            <pre class="bg-neutral-900 p-4 rounded-md text-xs w-full overflow-x-auto text-neutral-300"><%= begin
+                require 'json'
+                md = (e.metadata || {}).as_json
+                md.is_a?(Hash) ? JSON.pretty_generate(md) : md.to_json
+              rescue
+                (e.metadata || {}).to_json
+            end %></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </dialog>
+<% end %>

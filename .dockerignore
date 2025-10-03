@@ -1,0 +1,16 @@
+# Docker ignores
+.git
+.gitignore
+log/*
+tmp/*
+.tmp
+node_modules
+.bundle
+vendor/bundle
+coverage
+.byebug_history
+.env
+.env.*
+**/*.swp
+**/*.swo
+**/*.DS_Store

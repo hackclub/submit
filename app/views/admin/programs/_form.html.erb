@@ -1,0 +1,194 @@
+<%= form_with model: @program, url: @program.persisted? ? admin_program_path(@program) : admin_programs_path do |f| %>
+  <% if @program.errors.any? %>
+    <div class='w-full bg-red-500/20 p-4 rounded-md mb-4'>
+      <p><strong><%= pluralize(@program.errors.count, 'error') %> prevented program from saving:</strong></p>
+      <ul class="list-disc list-inside">
+        <% @program.errors.full_messages.each do |msg| %>
+          <li><%= msg %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+  <div class='flex flex-col space-y-4 text-base text-default-questions'>
+    <div class='flex flex-col space-y-2'>
+      <%= f.label :slug, class: "after:content-['_*'] after:text-default-questions/75" %>
+      <%= f.text_field :slug, required: true, class: 'bg-neutral-800 border-neutral-600 border rounded-md text-default-answers py-2 px-3 focus:outline-2 outline-default-primary' %>
+    </div>
+    <div class='flex flex-col space-y-2'>
+      <%= f.label :name, class: "after:content-['_*'] after:text-default-questions/75" %>
+      <%= f.text_field :name, required: true, class: 'bg-neutral-800 border-neutral-600 border rounded-md text-default-answers py-2 px-3 focus:outline-2 outline-default-primary' %>
+    </div>
+    <div class='flex flex-col space-y-2'>
+      <%= f.label :form_url, class: "after:content-['_*'] after:text-default-questions/75" %>
+      <%= f.url_field :form_url, required: true, class: 'bg-neutral-800 border-neutral-600 border rounded-md text-default-answers py-2 px-3 focus:outline-2 outline-default-primary' %>
+    </div>
+    <div class='flex flex-col space-y-2'>
+      <%= f.label :description %>
+      <%= f.text_area :description, rows: 3, class: 'bg-neutral-800 border-neutral-600 border rounded-md text-default-answers py-2 px-3 focus:outline-2 outline-default-primary' %>
+    </div>
+    <div class='flex space-x-2 items-center'>
+      <%= f.check_box :active, class: 'peer hidden' %>
+      <%= f.label :active, class: 'size-5 bg-neutral-800 border-2 border-neutral-600 rounded-md peer-checked:bg-default-primary peer-checked:border-0 focus:border-default-primary outline-0 focus:peer-checked:border-neutral-600', tabindex: 0 do %>
+      <% end %>
+      <%= inline_svg 'check-micro.svg', class: 'hidden peer-checked:block size-5 absolute pointer-events-none' %>
+      <%= f.label :active, 'Is this program active?' %>
+    </div>
+    <%# ysws_author cannot change owner_email %>
+    <% if superadmin? || current_admin&.admin? %>
+      <div class='flex flex-col space-y-2'>
+        <%= f.label :owner_email, 'Owner (email)', class: "after:content-['_*'] after:text-default-questions/75" %>
+        <%= f.email_field :owner_email, class: 'bg-neutral-800 border-neutral-600 border rounded-md text-default-answers py-2 px-3 focus:outline-2 outline-default-primary' %>
+      </div>
+    <% end %>
+
+    <% if @program.persisted? %>
+      <div class='flex flex-col space-y-2'>
+        <div class="flex items-center space-x-2">
+          <p class="mb-0">API Key</p>
+          <button type="button" id="regenerate-api-key-btn" class="px-2 py-1 rounded bg-red-700 text-white border border-red-500 text-xs hover:bg-red-600 transition">Regenerate Key</button>
+        </div>
+        <div class="bg-neutral-800 border border-neutral-600 rounded-md p-3">
+          <div class="flex items-center space-x-2">
+            <code class="font-mono text-sm text-green-400 bg-neutral-900 px-2 py-1 rounded flex-1" id="api-key-display">
+              <%= @program.api_key || 'No API key generated' %>
+            </code>
+            <button type="button" id="copy-api-key-btn" class="px-2 py-1 rounded bg-blue-700 text-white text-xs hover:bg-blue-600 transition" onclick="navigator.clipboard.writeText('<%= j @program.api_key %>')">
+              Copy
+            </button>
+          </div>
+          <p class="text-xs text-default-questions/75 mt-2">
+            Use this API key for headless authorization flows. Keep it secure and never expose it in client-side code.
+          </p>
+        </div>
+        <script>
+          document.addEventListener('DOMContentLoaded', function() {
+            const btn = document.getElementById('regenerate-api-key-btn');
+            if (!btn) return;
+            
+            btn.addEventListener('click', function() {
+              if (confirm('Are you sure? This will invalidate the existing API key and may break existing integrations.')) {
+                fetch('<%= regenerate_api_key_admin_program_path(@program) %>', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+                  }
+                }).then(response => response.json())
+                  .then(data => {
+                    if (data.api_key) {
+                      document.getElementById('api-key-display').textContent = data.api_key;
+                      document.getElementById('copy-api-key-btn').setAttribute('onclick', `navigator.clipboard.writeText('${data.api_key}')`);
+                      alert('API key regenerated successfully!');
+                    } else {
+                      alert('Failed to regenerate API key');
+                    }
+                  })
+                  .catch(error => {
+                    console.error('Error:', error);
+                    alert('Failed to regenerate API key');
+                  });
+              }
+            });
+          });
+        </script>
+      </div>
+    <% end %>
+
+    <div class="space-y-2">
+      <div class="flex items-center space-x-2">
+        <p class="mb-0">Customize colors</p>
+        <button type="button" id="reset-colors-btn" class="px-2 py-1 rounded bg-neutral-700 text-white border border-neutral-500 text-xs hover:bg-neutral-600 transition">Reset to default</button>
+      </div>
+      <div class="grid grid-cols-3 text-sm gap-y-2">
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const btn = document.getElementById('reset-colors-btn');
+    if (!btn) return;
+    btn.addEventListener('click', function() {
+      const defaults = {
+        background_primary: '262626',
+        background_secondary: '171717',
+        foreground_primary: 'f5f5f5',
+        foreground_secondary: 'a1a1a1',
+        accent: 'ec3750'
+      };
+      Object.entries(defaults).forEach(([field, val]) => {
+        const text = document.querySelector(`[name='program[${field}]']`);
+        if (text) text.value = val;
+        // If using color-sync, also update the color picker
+        const picker = text?.closest('[data-controller="color-sync"]')?.querySelector('input[type=color]');
+        if (picker) picker.value = '#' + val;
+      });
+    });
+  });
+</script>
+        <div class='flex flex-col space-y-2' data-controller="color-sync">
+          <%= f.label :background_primary, 'Background Primary' %>
+          <div class="flex items-center space-x-2">
+            <input type="color" data-color-sync-target="picker" value="#<%= @program.background_primary.presence || '262626' %>" class="w-10 h-10 p-0 border-none bg-transparent" style="min-width:2.5rem;" />
+            <%= f.text_field :background_primary, data: { color_sync_target: "text" }, class: 'bg-neutral-800 border-neutral-600 border rounded-md text-default-answers py-2 px-3 focus:outline-2 outline-default-primary w-28', placeholder: 'e.g. 262626' %>
+          </div>
+        </div>
+        <div class='flex flex-col space-y-2' data-controller="color-sync">
+          <%= f.label :background_secondary, 'Background Secondary' %>
+          <div class="flex items-center space-x-2">
+            <input type="color" data-color-sync-target="picker" value="#<%= @program.background_secondary.presence || '171717' %>" class="w-10 h-10 p-0 border-none bg-transparent" style="min-width:2.5rem;" />
+            <%= f.text_field :background_secondary, data: { color_sync_target: "text" }, class: 'bg-neutral-800 border-neutral-600 border rounded-md text-default-answers py-2 px-3 focus:outline-2 outline-default-primary w-28', placeholder: 'e.g. 171717' %>
+          </div>
+        </div>
+        <div class='flex flex-col space-y-2' data-controller="color-sync">
+          <%= f.label :foreground_primary, 'Foreground Primary' %>
+          <div class="flex items-center space-x-2">
+            <input type="color" data-color-sync-target="picker" value="#<%= @program.foreground_primary.presence || 'f5f5f5' %>" class="w-10 h-10 p-0 border-none bg-transparent" style="min-width:2.5rem;" />
+            <%= f.text_field :foreground_primary, data: { color_sync_target: "text" }, class: 'bg-neutral-800 border-neutral-600 border rounded-md text-default-answers py-2 px-3 focus:outline-2 outline-default-primary w-28', placeholder: 'e.g. f5f5f5' %>
+          </div>
+        </div>
+        <div class='flex flex-col space-y-2' data-controller="color-sync">
+          <%= f.label :foreground_secondary, 'Foreground Secondary' %>
+          <div class="flex items-center space-x-2">
+            <input type="color" data-color-sync-target="picker" value="#<%= @program.foreground_secondary.presence || 'a1a1a1' %>" class="w-10 h-10 p-0 border-none bg-transparent" style="min-width:2.5rem;" />
+            <%= f.text_field :foreground_secondary, data: { color_sync_target: "text" }, class: 'bg-neutral-800 border-neutral-600 border rounded-md text-default-answers py-2 px-3 focus:outline-2 outline-default-primary w-28', placeholder: 'e.g. a1a1a1' %>
+          </div>
+        </div>
+        <div class='flex flex-col space-y-2' data-controller="color-sync">
+          <%= f.label :accent, 'Accent' %>
+          <div class="flex items-center space-x-2">
+            <input type="color" data-color-sync-target="picker" value="#<%= @program.accent.presence || 'ec3750' %>" class="w-10 h-10 p-0 border-none bg-transparent" style="min-width:2.5rem;" />
+            <%= f.text_field :accent, data: { color_sync_target: "text" }, class: 'bg-neutral-800 border-neutral-600 border rounded-md text-default-answers py-2 px-3 focus:outline-2 outline-default-primary w-28', placeholder: 'e.g. ec3750' %>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="">
+      <p class="pb-2 after:content-['_*'] after:text-default-questions/75">Identity data scopes</p>
+      <div class="grid grid-cols-1 gap-y-1 text-sm">
+        <% scopes = @program.scopes || {} %>
+        <% sensitive = %w[birthday phone_number addresses] %>
+        <% %w[first_name last_name email birthday phone_number addresses].each do |key| %>
+          <% current_on = scopes[key].present? ? ActiveModel::Type::Boolean.new.cast(scopes[key]) : false %>
+          <% disable_for_author = (current_admin&.ysws_author? && sensitive.include?(key) && !current_on) %>
+          <label class='flex space-x-2 items-center'>
+            <%= check_box_tag "program[scopes][#{key}]", "1", current_on, disabled: disable_for_author, class: 'peer hidden' %>
+            <div class='size-4 bg-neutral-800 border-1 border-neutral-600 rounded peer-checked:bg-default-primary peer-checked:border-0 focus:border-default-primary outline-0 focus:peer-checked:border-neutral-600 peer-disabled:opacity-50' tabindex='0'>
+            </div>
+            <%= inline_svg 'check-micro.svg', class: 'hidden peer-checked:block size-4 absolute pointer-events-none peer-disabled:opacity-50' %>
+            <p class="peer-disabled:opacity-75"><%= key.humanize %><%= disable_for_author ? ' (request admin to enable)' : '' %></p>
+          </label>
+        <% end %>
+      </div>
+    </div>
+    <div class="flex flex-col space-y-2">
+      <div>
+        <p>Form mappings (JSON)</p>
+        <p class="text-default-questions/50">Map identity fields to form fields. Example: {"first_name":"First+Name","last_name":"Last+Name"}.<br>For Airtable, use prefill names with + instead of spaces.</p>
+      </div>
+      <%= text_area_tag :mappings, (@program.mappings.present? ? @program.mappings.to_json : "{}"), name: 'program[mappings]', rows: 6, class: 'bg-neutral-800 border-neutral-600 border rounded-md text-default-answers py-2 px-3 focus:outline-2 outline-default-primary resize-y' %>
+    </div>
+    <div class="">
+      <%= render "shared/button", type: "primary", method: :submit do %>
+        <%= @program.persisted? ? "Update Program" : "Create Program" %>
+      <% end %>
+    </div>
+  </div>  
+<% end %>

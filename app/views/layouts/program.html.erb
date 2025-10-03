@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title><%= @program&.name ? "Continue to #{@program.name} with Hack Club Submit" : "Hack Club Submit" %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="color-scheme" content="dark light" />
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    <%= stylesheet_link_tag "tailwind", "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
+    <%= Sentry.get_trace_propagation_meta.html_safe %>
+  </head>
+  <body class="text-white min-h-screen flex flex-col">
+    <%= render 'application/helpscout_beacon' %>
+    <div class="hidden md:block absolute top-0 left-0 w-12">
+        <a href="https://hackclub.com" target="_blank" rel="noopener"><%= inline_svg 'flag-orpheus-left.svg', class: 'w-32' %></a>
+    </div>
+    <main class="grow flex flex-col" id="main-content">
+      <div class="fixed top-4 right-4 space-y-2" data-controller="flash">
+        <% if flash[:success] %>
+          <div class="bg-green-200 text-green-800 py-2 px-3 rounded flex text-sm space-x-1.5 cursor-pointer transition-all duration-300" 
+               role="status" 
+               data-flash-target="message"
+               data-action="click->flash#dismiss">
+            <%= inline_svg 'success.svg', class: 'size-5' %>
+            <p><%= flash[:success] %></p>
+          </div>
+        <% end %>
+        <% if notice %>
+          <div class="bg-yellow-200 text-yellow-800 py-2 px-3 rounded flex text-sm space-x-1.5 cursor-pointer transition-all duration-300" 
+               role="status" 
+               data-flash-target="message"
+               data-action="click->flash#dismiss">
+            <%= inline_svg 'warning.svg', class: 'size-5' %>
+            <p><%= notice %></p>
+          </div>
+        <% end %>
+        <% if alert %>
+          <div class="bg-red-200 text-red-800 py-2 px-3 rounded flex text-sm space-x-1.5 cursor-pointer transition-all duration-300" 
+               role="status"
+               data-flash-target="message"
+               data-action="click->flash#dismiss">
+            <%= inline_svg 'error.svg', class: 'size-5' %>
+            <p><%= alert %></p>
+          </div>
+        <% end %>
+      </div>
+      <%= yield %>
+    </main>
+    <footer class="flex items-center justify-center py-4 text-xs px-2 sm:px-8 bg-neutral-800 sm:bg-transparent <%= defined?(@program) ? (@program&.is_bg_secondary_dark? ? 'text-neutral-500' : 'text-neutral-900') : 'text-neutral-500' %>">
+        <p>Made with <span class="text-pink-400" aria-hidden="true">❤</span> by Leo from <a href="https://hackclub.com" class="underline">Hack Club</a>. Powered by <a href="https://identity.hackclub.com" class="underline">Hack Club Identity</a>.</p>
+    </footer>
+  </body>
+</html>

@@ -1,0 +1,428 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Hack Club Submit API",
+    "description": "API for identity verification and headless authorization flows. Includes endpoints for verifying user identities and programmatic authorization via popup flows.",
+    "license": { "name": "MIT" },
+    "version": "1.1.0"
+  },
+  "servers": [
+    { "url": "https://submit.hackclub.com" }
+  ],
+  "paths": {
+    "/api/verify": {
+      "get": {
+        "tags": ["Verification"],
+        "summary": "Verify a Submit session",
+        "description": "Validates an Identity Vault record (idv_rec) against provided first/last name and email for a specific Submit session. A one-time OAuth-issued submit token is required and must match the identity.",
+        "parameters": [
+          {
+            "name": "idv_rec",
+            "in": "query",
+            "required": true,
+            "description": "Identity Vault record identifier. May include a trailing `:SUBMIT_TOKEN` (e.g., `id_abc123:sub_456`) in which case the token will be extracted and used as the `submit_id`.",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "submit_id",
+            "in": "query",
+      "required": true,
+      "description": "One-time submit token, issued via the OAuth callback. Provide this if it is not embedded in `idv_rec`. Missing, mismatched, or unauthorized tokens return 403; reuse returns 410 Gone.",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "first_name",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "last_name",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "email",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string", "format": "email" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Verification result. `verified` will be true only if first name, last name, and email all match the verified record. When an identity wasn't found upstream, the endpoint still returns 200 with `verified=false` and `identity_response=null`.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/VerifyResponse" },
+                "examples": {
+                  "verified": {
+                    "summary": "All fields match",
+                    "value": {
+                      "verified": true,
+                      "identity_response": {
+                        "id": "id_123",
+                        "verification_status": "verified",
+                        "ysws_eligible": true,
+                        "email": "user@example.com"
+                      }
+                    }
+                  },
+                  "not_verified_mismatch": {
+                    "summary": "Identity found but provided data doesn't match",
+                    "value": {
+                      "verified": false,
+                      "identity_response": {
+                        "verification_status": "verified",
+                        "ysws_eligible": true,
+                        "first_name": "Alice",
+                        "last_name": "Smith",
+                        "email": "alice@sample.com"
+                      }
+                    }
+                  },
+                  "ineligible": {
+                    "summary": "YSWS ineligible",
+                    "value": {
+                      "verified": false,
+                      "error": "YSWS programs are for individuals 18 and under only",
+                      "identity_response": {
+                        "verification_status": "verified",
+                        "ysws_eligible": false,
+                        "email": "user@example.com"
+                      }
+                    }
+                  },
+                  "unknown_identity": {
+                    "summary": "Identity not found upstream",
+                    "value": {
+                      "verified": false,
+                      "identity_response": null
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing required parameters (idv_rec, first_name, last_name, email).",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "example": {
+                  "verified": false,
+                  "error": "Missing required parameters: idv_rec, first_name, last_name, email",
+                  "identity_response": null
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden. Either the program exists but is inactive, or the submit token is missing/unauthorized for the given identity.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "examples": {
+                  "inactive_program": {
+                    "summary": "Program is inactive",
+                    "value": {
+                      "verified": false,
+                      "error": "Program is inactive",
+                      "identity_response": null
+                    }
+                  },
+                  "missing_token": {
+                    "summary": "Missing submit token",
+                    "value": {
+                      "verified": false,
+                      "error": "Submit token required",
+                      "identity_response": null
+                    }
+                  },
+                  "unauthorized_token": {
+                    "summary": "Token not authorized for identity",
+                    "value": {
+                      "verified": false,
+                      "error": "Submit token not authorized for this identity",
+                      "identity_response": null
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Program not found (when a program slug is provided).",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "example": {
+                  "verified": false,
+                  "error": "Program not found",
+                  "identity_response": null
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Submit token (submit_id) already used.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "example": {
+                  "verified": false,
+                  "error": "Submit token already used",
+                  "identity_response": null
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error (e.g., upstream fetch failure or server misconfiguration).",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "examples": {
+                  "server_config": {
+                    "summary": "Server configuration error",
+                    "value": {
+                      "verified": false,
+                      "error": "Server configuration error",
+                      "identity_response": null
+                    }
+                  },
+                  "fetch_failed": {
+                    "summary": "Failed to fetch user data",
+                    "value": {
+                      "verified": false,
+                      "error": "Failed to fetch user data",
+                      "identity_response": null
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/authorize": {
+      "post": {
+        "tags": ["Authorization"],
+        "summary": "Create authorization request",
+        "description": "Creates a new authorization request for headless OAuth flows. Returns a popup URL that users can visit to complete identity verification.",
+        "security": [
+          { "ApiKeyAuth": [] }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorization request created successfully",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AuthorizeResponse" },
+                "example": {
+                  "auth_id": "8eaa8b02-1018-4075-aec0-7872e5db18aa",
+                  "popup_url": "https://submit.hackclub.com/popup/authorize/8eaa8b02-1018-4075-aec0-7872e5db18aa",
+                  "status": "pending",
+                  "expires_at": "2025-08-27T00:26:18.573Z"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AuthError" },
+                "example": {
+                  "error": "Invalid or inactive API key"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/authorize/{auth_id}/status": {
+      "get": {
+        "tags": ["Authorization"],
+        "summary": "Check authorization status",
+        "description": "Checks the current status of an authorization request. Returns completion details if the user has completed the authorization flow.",
+        "security": [
+          { "ApiKeyAuth": [] }
+        ],
+        "parameters": [
+          {
+            "name": "auth_id",
+            "in": "path",
+            "required": true,
+            "description": "The authorization request ID",
+            "schema": { "type": "string", "format": "uuid" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorization status retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AuthStatusResponse" },
+                "examples": {
+                  "pending": {
+                    "summary": "Authorization still pending",
+                    "value": {
+                      "auth_id": "8eaa8b02-1018-4075-aec0-7872e5db18aa",
+                      "status": "pending",
+                      "created_at": "2025-08-27T00:11:18.546Z",
+                      "verified": false,
+                      "identity_response": null
+                    }
+                  },
+                  "completed": {
+                    "summary": "Authorization completed",
+                    "value": {
+                      "auth_id": "8eaa8b02-1018-4075-aec0-7872e5db18aa",
+                      "status": "completed",
+                      "created_at": "2025-08-27T00:11:18.546Z",
+                      "idv_rec": "user123",
+                      "completed_at": "2025-08-27T00:15:30.123Z",
+                      "verified": true,
+                      "identity_response": {
+                        "id": "id_123",
+                        "verification_status": "verified",
+                        "ysws_eligible": true,
+                        "email": "user@example.com"
+                      }
+                    }
+                  },
+                  "expired": {
+                    "summary": "Authorization expired",
+                    "value": {
+                      "auth_id": "8eaa8b02-1018-4075-aec0-7872e5db18aa",
+                      "status": "expired",
+                      "created_at": "2025-08-27T00:11:18.546Z",
+                      "verified": false,
+                      "error": "Authorization expired",
+                      "identity_response": null
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AuthError" },
+                "example": {
+                  "error": "Invalid or inactive API key"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Authorization request not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AuthError" },
+                "example": {
+                  "error": "Authorization request not found"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "ApiKeyAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Program API key obtained from the admin dashboard"
+      }
+    },
+    "schemas": {
+      "VerifyResponse": {
+        "type": "object",
+        "required": ["verified", "identity_response"],
+        "properties": {
+          "verified": { "type": "boolean" },
+          "identity_response": {
+            "description": "Identity fields returned. When a program is specified, fields are filtered by that program's allowed scopes; otherwise a minimal set is returned.",
+            "anyOf": [
+              { "type": "null" },
+              { "$ref": "#/components/schemas/IdentityResponse" }
+            ]
+          },
+          "error": { "type": "string", "description": "Present when an error or ineligibility occurred." }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "required": ["verified", "identity_response", "error"],
+        "properties": {
+          "verified": { "type": "boolean" },
+          "error": { "type": "string" },
+          "identity_response": { "type": "null" }
+        }
+      },
+      "IdentityResponse": {
+        "type": "object",
+  "description": "Normalized identity data. Fields may vary based on program scopes. The minimal default set includes: id, verification_status, ysws_eligible, email.",
+        "properties": {
+          "id": { "type": "string", "description": "Identity ID" },
+          "verification_status": {
+            "type": "string",
+            "description": "Verification status of the identity",
+            "enum": ["verified", "pending", "rejected", "unverified"]
+          },
+          "ysws_eligible": { "type": "boolean", "description": "Whether the identity is eligible for YSWS programs (18 and under)." },
+          "email": { "type": "string", "format": "email" },
+          "first_name": { "type": "string" },
+          "last_name": { "type": "string" },
+          "rejection_reason": { "type": "string" }
+        },
+        "additionalProperties": true
+      },
+      "AuthorizeResponse": {
+        "type": "object",
+        "required": ["auth_id", "popup_url", "status", "expires_at"],
+        "properties": {
+          "auth_id": { "type": "string", "format": "uuid", "description": "Unique identifier for this authorization request" },
+          "popup_url": { "type": "string", "format": "uri", "description": "URL for the user to visit in a popup window to complete authorization" },
+          "status": { "type": "string", "enum": ["pending"], "description": "Current status of the authorization request" },
+          "expires_at": { "type": "string", "format": "date-time", "description": "When this authorization request expires (15 minutes from creation)" }
+        }
+      },
+      "AuthStatusResponse": {
+        "type": "object",
+        "required": ["auth_id", "status", "created_at"],
+        "properties": {
+          "auth_id": { "type": "string", "format": "uuid" },
+          "status": { "type": "string", "enum": ["pending", "completed", "expired", "failed"], "description": "Current status of the authorization request" },
+          "created_at": { "type": "string", "format": "date-time" },
+          "idv_rec": { "type": "string", "description": "Identity record ID (only present when status is 'completed')" },
+          "completed_at": { "type": "string", "format": "date-time", "description": "When the authorization was completed (only present when status is 'completed')" },
+          "verified": { "type": "boolean", "description": "Whether the identity is verified and eligible. Present for all statuses to mirror /api/verify (true for completed, false otherwise)." },
+          "identity_response": {
+            "description": "Filtered identity fields, mirroring /api/verify. Present when completed; null otherwise.",
+            "anyOf": [
+              { "type": "null" },
+              { "$ref": "#/components/schemas/IdentityResponse" }
+            ]
+          },
+          "error": { "type": "string", "description": "Present for non-success statuses (e.g., expired or failed)." }
+        }
+      },
+      "AuthError": {
+        "type": "object",
+        "required": ["error"],
+        "properties": {
+          "error": { "type": "string", "description": "Error message describing what went wrong" }
+        }
+      }
+    }
+  }
+}

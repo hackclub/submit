@@ -1,0 +1,138 @@
+<div class="grow flex flex-col items-center justify-center sm:p-4 space-y-8 program-consent">
+  <section class="bg-[var(--program-bg-primary)] sm:rounded-md space-y-4 sm:max-w-lg 2xl:max-w-xl w-full grow sm:grow-0 flex flex-col text-[var(--program-foreground-primary)]">
+    <div class="p-4 px-4 border-b border-[var(--program-foreground-secondary)] text-[var(--program-foreground-secondary)] text-xs flex">
+      <p class="grow text-left">Hack Club Submit</p>
+      <div class="text-xs flex items-center justify-end space-x-1 <%= Rails.env.development? ? 'text-orange-300' : 'text-[var(--program-foreground-secondary)]' %>">
+          <%= inline_svg (false ? 'warning-micro.svg' : 'lock-micro.svg'), class: "size-3 #{Rails.env.development? ? '' : '-mt-0.5'}" %>
+          <p><%= Rails.env.development? ? 'DEVELOPMENT' : 'Secure Connection' %></p>
+        </div>
+    </div>
+    <% if @program.active? %>
+      <div class="p-10 px-6 sm:px-10 pt-0 space-y-2 2xl:space-y-4 my-auto">
+        <div class="py-6 2xl:py-10 space-y-3 2xl:space-y-5">
+          <h2 class="text-2xl sm:text-3xl"><span class="text-[var(--program-accent)] font-bold"><%= @program.name %></span> requires you to verify your identity before continuing</h2>
+          <div class="flex justify-center">
+            <div class="flex space-x-1 items-center justify-center rounded-full border p-1 px-4 text-sm sm:text-base <%= @program.is_bg_primary_dark? ? 'border-green-400/50 text-green-400/60' : 'border-green-800/50 text-green-800/60' %>">
+              <%= inline_svg 'check-badge.svg', class: 'size-4 sm:size-6 ' + (@program.is_bg_primary_dark? ? 'text-green-400/60' : 'text-green-800/60 ') %>
+              <p><%= @program.name %> is<span class="hidden sm:inline"> an official Hack Club program</span><span class="sm:hidden"> official</span></p>
+            </div>
+          </div>
+        </div>
+        <div class="text-left space-y-2 2xl:space-y-4">
+          <h3 class="text-lg 2xl:text-xl font-bold">This will allow <span class="text-[var(--program-accent)] font-bold"><%= @program.name %></span> to:</h3>
+          <div class="text-sm 2xl:text-base flex flex-col space-y-1 2xl:space-y-2">
+            <% scopes = @program.scopes %>
+            <div class="flex space-x-3 items-center">
+              <%= inline_svg 'user-micro.svg', class: 'size-4' %>
+              <p>Verify that you are a real person</p>
+            </div>
+            <div class="flex space-x-3 items-center">
+              <%= inline_svg 'check-badge-micro.svg', class: 'size-4' %>
+              <p>Verify your eligibility to participate</p>
+            </div>
+            <% if scopes["first_name"] || scopes["last_name"] %>
+              <div class="flex space-x-3 items-center">
+                <%= inline_svg 'id-micro.svg', class: 'size-4' %>
+                <% if scopes["first_name"] && scopes["last_name"] %>
+                  <p>See your legal full name</p>
+                <% elsif scopes["first_name"] %>
+                  <p>See your legal first name</p>
+                <% elsif scopes["last_name"] %>
+                  <p>See your legal last name</p>
+                <% end %>
+              </div>
+            <% end %>
+            <% if scopes["email"] %>
+              <div class="flex space-x-3 items-center">
+                <%= inline_svg 'at-micro.svg', class: 'size-4' %>
+                <p>See your email</p>
+              </div>
+            <% end %>
+            <% if scopes["birthday"] %>
+              <div class="flex space-x-3 items-center">
+                <%= inline_svg 'calendar-micro.svg', class: 'size-4' %>
+                <p>See your birthday</p>
+              </div>
+            <% end %>
+            <% if scopes["addresses"] %>
+              <div class="flex space-x-3 items-center">
+                <%= inline_svg 'pin-micro.svg', class: 'size-4' %>
+                <p>See your address</p>
+              </div>
+            <% end %>
+          </div>
+        </div>
+        <div class="text-left pt-4 2xl:pt-8 text-xs 2xl:text-sm space-y-1 2xl:space-y-2">
+          <p class="text-base 2xl:text-lg font-bold">Your information is secure</p>
+          <p class="text-[var(--program-foreground-secondary)]"><%= @program.name %> will receive only the identity information listed above and any other data you submit to them. Only authorized staff will have access to that information.</p>
+        </div>
+        <div class="flex pt-4 items-center" 
+            data-controller="verification" 
+            data-verification-program-slug-value="<%= @program.slug %>"
+            <% if request.query_string.present? %>data-verification-original-params-value="<%= request.query_string %>"<% end %>>
+          <div class="hidden" data-verification-target="historyButton">
+            <%= render 'shared/button', type: 'link', class: 'text-[var(--program-foreground-primary)] cursor-pointer', data: { action: 'click->verification#goBack' } do %>
+              Cancel
+            <% end %>
+          </div>
+          <div class='grow'></div>
+          <%= render 'shared/button', type: 'primary-accent', method: :button, data: { action: 'click->verification#verify' }, class: 'inline-flex items-center justify-center px-4 py-2 text-md font-medium rounded border border-transparent bg-[var(--program-accent)] text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--program-accent)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 cursor-pointer' do %>
+            Continue
+          <% end %>
+        </div>
+        <% if current_admin&.superadmin? || current_admin&.admin? || (current_admin&.ysws_author? && @program.owner_email == current_admin.email) %>
+          <div class="flex">
+            <%= render 'shared/button', type: 'link', link: edit_admin_program_path(@program), class: "rounded-md border-2 border-orange-300 border-dashed w-full px-2 py-2 bg-orange-300/10 text-orange-300" do %>
+              Edit program
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    <% else %>
+      <div class="p-10 px-6 sm:px-10 pt-0 space-y-2 2xl:space-y-4 my-auto">
+        <div class="py-6 2xl:py-10 space-y-3 2xl:space-y-5">
+          <h2 class="text-2xl sm:text-3xl">There was an issue accessing <span class="text-[var(--program-accent)] font-bold"><%= @program.name %></span></h2>
+          <div class="flex justify-center">
+            <div class="flex space-x-1 items-center justify-center rounded-full border p-1 px-4 border-green-400/50 text-green-400/60 text-sm sm:text-base">
+              <%= inline_svg 'check-badge.svg', class: 'size-4 sm:size-6 text-green-400/60' %>
+              <p><%= @program.name %> is<span class="hidden sm:inline"> an official Hack Club program</span><span class="sm:hidden"> official</span></p>
+            </div>
+          </div>
+        </div>
+        <div class="text-left text-xs 2xl:text-sm space-y-1 2xl:space-y-2">
+          <p class="text-base 2xl:text-lg font-bold"><%= @program.name %> is currently not accepting submissions</p>
+          <p class="text-[var(--program-foreground-secondary)]">If you think this is a mistake, contact the <%= @program.name %> organizers.</p>
+        </div>
+        <div class="flex pt-4 items-center"
+             data-controller="verification"> 
+          <div class="hidden" data-verification-target="historyButton">
+            <%= render 'shared/button', type: 'link', class: 'text-[var(--program-foreground-primary)]', data: { action: 'click->verification#goBack' } do %>
+              Back
+            <% end %>
+          </div>
+        </div>
+        <% if current_admin&.superadmin? || current_admin&.admin? || (current_admin&.ysws_author? && @program.owner_email == current_admin.email) %>
+          <div class="flex">
+            <%= render 'shared/button', type: 'link', link: edit_admin_program_path(@program), class: "rounded-md border-2 border-orange-300 border-dashed w-full px-2 py-2 bg-orange-300/10 text-orange-300" do %>
+              Edit program
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+  </section>
+</div>
+
+<style>
+  body, footer {
+    background-color: #<%= @program.background_secondary || '171717' %>;
+  }
+
+  .program-consent {
+    --program-bg-primary: #<%= @program.background_primary || '262626' %>;
+    --program-bg-secondary: #<%= @program.background_secondary || '171717' %>;
+    --program-foreground-primary: #<%= @program.foreground_primary || 'f5f5f5' %>;
+    --program-foreground-secondary: #<%= @program.foreground_secondary || 'a1a1a1' %>;
+    --program-accent: #<%= @program.accent || 'ec3750' %>;
+  }
+</style>

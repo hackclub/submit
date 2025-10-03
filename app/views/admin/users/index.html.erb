@@ -1,0 +1,134 @@
+<style>
+  body {
+    border-color: #ff6467 !important; /* red-300 */
+  }
+</style>
+
+<script>
+  function handleRoleChange(selectElement) {
+    const currentRole = selectElement.dataset.currentRole;
+    const newRole = selectElement.value;
+    
+    // Define role hierarchy (higher number = higher tier)
+    const roleHierarchy = {
+      'ysws_author': 1,
+      'admin': 2,
+      'superadmin': 3
+    };
+    
+    const currentTier = roleHierarchy[currentRole];
+    const newTier = roleHierarchy[newRole];
+    
+    // Check if user is downgrading their role
+    if (newTier < currentTier) {
+      const confirmed = confirm(`Are you sure you want to downgrade your role from ${currentRole.replace('_', ' ')} to ${newRole.replace('_', ' ')}? You may lose access to certain things.`);
+      if (confirmed) {
+        selectElement.form.submit();
+      } else {
+        // Reset to original value
+        selectElement.value = currentRole;
+      }
+    } else {
+      // No downgrade, submit normally
+      selectElement.form.submit();
+    }
+  }
+</script>
+
+<div class="grow text-left py-4 md:py-10 space-y-4 md:space-y-8 mx-2 md:mx-8">
+  <section>
+    <h1 class="text-2xl md:text-4xl font-bold">Admin Users</h1>
+  </section>
+
+  <section>
+    <div class="overflow-x-auto">
+      <div class="min-w-2xl">
+        <% if defined?(@new_user) && @new_user&.errors&.any? %>
+          <div class='w-full bg-red-500/20 p-4 rounded-md mb-4'>
+            <p><strong><%= pluralize(@new_user.errors.count, 'error') %> prevented admin from being saved:</strong></p>
+            <ul class="list-disc list-inside">
+              <% @new_user.errors.full_messages.each do |msg| %>
+                <li><%= msg %></li>
+              <% end %>
+            </ul>
+          </div>
+        <% end %>
+        <div class="grid grid-cols-6 w-full py-1 my-1 font-bold border-b border-b-default-questions/20 gap-x-2">
+          <p class="col-span-3">Email</p>
+          <p class="">Role</p>
+          <p class="col-span-2 text-right">Actions</p>
+        </div>
+        <div class="grid grid-cols-6 w-full border-b-default-questions/20 gap-y-1 py-1 gap-x-2">
+          <% @users.each do |u| %>
+            <p class="col-span-3"><%= u.email %><%= u == current_admin ? ' (you)' : '' %></p>
+            <% if u.superadmin? %>
+              <p class="text-red-400">Superadmin</p>
+            <% elsif u.ysws_author? %>
+              <p class="">YSWS Author</p>
+            <% else %>
+              <p class="text-orange-300">Admin</p>
+            <% end %>
+            <div class="col-span-2 flex space-x-2 justify-right">
+              <div class="grow"></div>
+              <%= form_with model: u, url: admin_user_path(u), method: :patch, local: true, data: { turbo_confirm: u == current_admin ? 'true' : 'false' } do |f| %>
+                <div class="relative">
+                  <%= f.select :role, AdminUser.roles.keys.map { |r| [r.humanize, r] }, { selected: u.role }, {
+                    class: 'appearance-none bg-neutral-800 rounded-md text-default-answers px-2 pr-8 text-sm w-full outline-0',
+                    onchange: u == current_admin ? 'handleRoleChange(this)' : 'this.form.submit();',
+                    data: {
+                      current_role: u.role,
+                      is_current_user: u == current_admin
+                    }
+                  } %>
+                  <%= inline_svg 'chevron-down-micro.svg', class: 'absolute right-2 top-1/2 transform -translate-y-1/2 pointer-events-none size-4 text-neutral-400' %>
+                </div>
+              <% end %>
+              <% if u == current_admin %>
+                <%= render "shared/button", link: "#", class: "text-red-400/50 cursor-text", title: "You can't delete yourself!" do %>
+                  Delete
+                <% end %>
+              <% else %>
+                <%= button_to 'Delete', admin_user_path(u), method: :delete, form: { data: { turbo_confirm: 'Delete this admin user?' } }, class: 'inline-flex underline text-red-400' %>
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="flex flex-col items-start space-y-4">
+    <h2 class="text-3xl font-bold grow">Add New Admin</h2>
+    <div class='text-base text-default-questions w-full'>
+      <%= form_with model: @new_user, url: admin_users_path, local: true, class: "space-y-4" do |f| %>
+        <% if @new_user&.errors&.any? %>
+          <div class='w-full bg-red-500/20 p-4 rounded-md'>
+            <p><strong><%= pluralize(@new_user.errors.count, 'error') %> prevented admin from being saved:</strong></p>
+            <ul class="list-disc list-inside">
+              <% @new_user.errors.full_messages.each do |msg| %>
+                <li><%= msg %></li>
+              <% end %>
+            </ul>
+          </div>
+        <% end %>
+        <div class="grid grid-cols-2 gap-4">
+          <div class='flex flex-col space-y-2'>
+            <%= f.label :email, class: "after:content-['_*'] after:text-default-questions/75" %>
+            <%= f.email_field :email, required: true, class: 'bg-neutral-800 border-neutral-600 border rounded-md text-default-answers py-2 px-3 focus:outline-2 outline-default-primary' %>
+          </div>
+          <div class='flex flex-col space-y-2'>
+            <%= f.label :role, class: "after:content-['_*'] after:text-default-questions/75" %>
+            <div class="relative">
+              <%= f.select :role, AdminUser.roles.keys.map { |r| [r.humanize, r] }, {}, {
+                class: 'appearance-none bg-neutral-800 border-neutral-600 border rounded-md text-default-answers py-2 px-3 pr-8 focus:outline-2 outline-default-primary w-full'
+              } %>
+              <%= inline_svg 'chevron-down-micro.svg', class: 'absolute right-2 top-1/2 transform -translate-y-1/2 pointer-events-none size-4 text-neutral-400' %>
+            </div>
+          </div>
+        </div>
+        <%= render 'shared/button', type: 'primary' do %>
+          Add Admin
+        <% end %>
+      <%end%>
+    </div>
+  </section>
+</div>

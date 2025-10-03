@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Hack Club Submit</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="color-scheme" content="dark light" />
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    <%= stylesheet_link_tag "tailwind", "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
+    <%= Sentry.get_trace_propagation_meta.html_safe %>
+  </head>
+  <body>
+  <%= render 'application/helpscout_beacon' %>
+    <header class="h-32 md:h-20 flex justify-center items-center">
+      <div class="max-w-7xl grow mx-8 flex flex-col md:flex-row items-center space-y-2">
+        <a href="/" class="text-xl font-medium flex space-x-4 items-center justify-start" aria-label="Hack Club Submit home">
+          <%= inline_svg 'icon.svg', class: 'size-10' %>
+          <p>Hack Club Submit</p>
+        </a>
+        <div class="grow"></div>
+        <div class="text-xs flex items-center justify-end space-x-1 <%= Rails.env.development? ? 'text-orange-300' : 'text-default-questions/50' %>">
+          <%= inline_svg (Rails.env.development? ? 'warning-micro.svg' : 'lock-micro.svg'), class: "size-3 #{Rails.env.development? ? '' : '-mt-0.5'}" %>
+          <p><%= Rails.env.development? ? 'FOR DEVELOPMENT ONLY' : 'Your connection is secure' %></p>
+          <% if current_admin %>
+            <a class="text-orange-300 bg-orange-300/10 py-1 px-2 border-2 rounded border-dashed ml-4" href="<%= current_admin.ysws_author? ? admin_programs_path : admin_root_path %>"><%= current_admin.ysws_author? ? 'YSWS Author' : 'Admin' %></a>
+          <% end %>
+        </div>
+      </div>
+    </header>
+    <main class="grow flex flex-col items-center" id="main-content">
+      <div class="grow max-w-6xl w-full flex flex-col">
+        <div class="fixed top-4 right-4 space-y-2" data-controller="flash">
+          <% if flash[:success] %>
+            <div class="bg-green-200 text-green-800 py-2 px-3 rounded flex text-sm space-x-1.5 cursor-pointer transition-all duration-300" 
+                 role="status" 
+                 data-flash-target="message"
+                 data-action="click->flash#dismiss">
+              <%= inline_svg 'success.svg', class: 'size-5' %>
+              <p><%= flash[:success] %></p>
+            </div>
+          <% end %>
+          <% if notice %>
+            <div class="bg-yellow-200 text-yellow-800 py-2 px-3 rounded flex text-sm space-x-1.5 cursor-pointer transition-all duration-300" 
+                 role="status" 
+                 data-flash-target="message"
+                 data-action="click->flash#dismiss">
+              <%= inline_svg 'warning.svg', class: 'size-5' %>
+              <p><%= notice %></p>
+            </div>
+          <% end %>
+          <% if alert %>
+            <div class="bg-red-200 text-red-800 py-2 px-3 rounded flex text-sm space-x-1.5 cursor-pointer transition-all duration-300" 
+                 role="status"
+                 data-flash-target="message"
+                 data-action="click->flash#dismiss">
+              <%= inline_svg 'error.svg', class: 'size-5' %>
+              <p><%= alert %></p>
+            </div>
+          <% end %>
+        </div>
+        <%= yield %>
+      </div>
+    </main>
+    <footer class="flex items-center justify-center py-4 text-xs text-default-questions/50 mx-8">
+        <p>Made with <span class="text-pink-400" aria-hidden="true">❤</span> by Leo from <a href="https://hackclub.com" class="underline">Hack Club</a>. Powered by <a href="https://identity.hackclub.com" class="underline">Hack Club Identity</a>.</p>
+    </footer>
+  </body>
+</html>

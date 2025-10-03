@@ -1,0 +1,109 @@
+---
+title: "Quickstart"
+description: "Get your YSWS's submissions secured & trusted easily with Hack Club's Submit."
+icon: "rocket"
+---
+
+## Get started in three steps
+
+### Step 1: Airtable
+
+<AccordionGroup>
+  <Accordion icon="pen" title="Create the fields">
+    Create the following fields on your `YSWS Project Submission` table.
+    <ResponseField name="idv_rec" type="Single Line Text" required/>
+    <ResponseField name="Identity Verified" type="Checkbox" required/>
+  </Accordion>
+  <Accordion icon="robot" title="Create the automation">
+    Add a new automation on **record creation** that runs this script:
+    ```js Handle Identity expandable icon="file-spreadsheet"
+    const recordId = input.config().recordID.trim();
+    let table = base.getTable("YSWS Project Submission");
+
+    const queryResult = await table.selectRecordAsync(recordId);
+
+    if (queryResult == null) {
+        throw new Error(`Record with ID "${recordId}" not found in table "YSWS Project Submission"`);
+    }
+
+    const data = {
+        first_name: queryResult.getCellValue("First Name"),
+        last_name: queryResult.getCellValue("Last Name"),
+        idv_rec: queryResult.getCellValue("idv_rec"),
+        email: queryResult.getCellValue("Email")
+    };
+
+    const searchParams = new URLSearchParams(data).toString();
+    const requestUrl = "https://submit.hackclub.com/api/verify?" + searchParams;
+
+    const response = await fetch(requestUrl).then(res => res.json());
+
+    table.updateRecordAsync(recordId, {
+        "Identity Verified": response.verified
+    });
+    ```
+    <Warning>You must set the input variable `recordId` to record ID in the left sidebar!</Warning>
+  </Accordion>
+</AccordionGroup>
+
+### Step 2: Fillout
+
+<AccordionGroup>
+  <Accordion icon="plus" title="Create the form">
+    Go to [this Fillout folder](https://build.fillout.com/home/286943-!ysws-start-here!), duplicate the form there, and copy to your workspace.
+  </Accordion>
+  <Accordion icon="link" title="Link it & map it">
+    Add any customized fields, like Hackatime, and then begin to link all fields to your Airtable.
+    <Expandable title="linking steps">
+      1. Go to the `Integrate` tab
+      2. Select `Airtable`
+      3. If not already linked, add your Airtable account as a workspace-wide access.
+      4. Select your base & table (YSWS Project Submission)
+      5. Click Finish Setup
+    </Expandable>
+    <Expandable title="mapping GIF">
+      ![mapping fields in Fillout to Airtable fields](images/fillout_map.gif)
+    </Expandable>
+  </Accordion>
+  <Accordion icon="rocket" title="Publish the form">
+    Save your form, and copy the form URL for the next step.
+  </Accordion>
+</AccordionGroup>
+
+### Step 3: Submit
+
+<AccordionGroup>
+  <Accordion icon="pen-to-square" title="Create a program">
+    1. Go to [submit.hackclub.com/admin/programs](https://submit.hackclub.com/admin/programs) and create a new program.
+    2. Add your form URL to the program configuration, as well as the name & description.
+    3. Select the identity scopes you need, and only the ones you need - First name, Last name, and Email.
+    4. Leave Form mappings blank.
+
+    <Card title="Submit Config" icon="gear" href="/settings">
+      Explore more configuration options in the Settings page
+    </Card>
+  </Accordion>
+  <Accordion icon="rocket" title="Update your YSWS website">
+    Update your YSWS website to use your Submit link instead of your form link. The format is `https://submit.hackclub.com/yourprogramslug`, where `yourprogramslug` is the slug you set when creating the program.
+  </Accordion>
+</AccordionGroup>
+
+## Next steps
+
+Now that you have Submit up & running, explore these bonus features:
+
+<CardGroup cols={2}>
+
+  <Card title="Customize style" icon="palette" href="/settings#param-colors">
+    Make your auth page match your YSWS's brand perfectly.
+  </Card>
+
+  <Card title="API documentation" icon="code" href="api-ref/endpoint/verify">
+    Read more about custom implementations of the API.
+  </Card>
+
+</CardGroup>
+
+<Note>
+  **Need help?** Ask in [#submit-help](https://hackclub.slack.com/archives/C09B1B4DZ41)
+</Note>

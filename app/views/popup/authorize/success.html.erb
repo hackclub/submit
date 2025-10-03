@@ -1,0 +1,32 @@
+<div class="w-full px-4 py-6 md:py-10 flex justify-center">
+  <div class="w-full max-w-lg rounded-xl border border-neutral-200/30 bg-white/80 dark:bg-neutral-900/80 backdrop-blur shadow-sm text-center">
+    <div class="px-6 md:px-8 py-5 border-b border-neutral-200/50 flex items-center space-x-3 justify-center">
+      <%= inline_svg 'success.svg', class: 'size-6 text-green-600' %>
+      <h1 class="text-lg md:text-xl font-medium">Authorization Successful</h1>
+    </div>
+    <div class="px-6 md:px-8 py-6 space-y-5">
+      <p class="text-sm md:text-base text-neutral-600 dark:text-neutral-300">
+        Your identity has been verified and authorized for the application.
+      </p>
+
+      <div class="rounded-lg border border-green-200 bg-green-50 p-4 text-left">
+        <p class="text-sm text-green-800">
+          You can now close this popup window. The application will be notified of your successful authorization.
+        </p>
+      </div>
+
+      <button onclick="window.close()"
+              class="w-full py-3 px-4 rounded-md font-medium text-white"
+              style="background:#ec3750">
+        Close Window
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Auto-close after 3 seconds
+  setTimeout(() => {
+    window.close();
+  }, 3000);
+</script>

@@ -1,0 +1,29 @@
+<div class="grow flex flex-col items-center justify-center sm:p-4 space-y-8">
+  <section class="bg-neutral-800 sm:rounded-md space-y-4 sm:max-w-lg 2xl:max-w-xl w-full grow sm:grow-0 flex flex-col">
+    <div class="p-4 px-4 border-b border-neutral-500 text-neutral-400 text-xs flex">
+      <p class="grow text-left">Hack Club Submit</p>
+      <div class="text-xs flex items-center justify-end space-x-1 <%= Rails.env.development? ? 'text-orange-300' : 'text-default-questions/50' %>">
+          <%= inline_svg (false ? 'warning-micro.svg' : 'lock-micro.svg'), class: "size-3 #{Rails.env.development? ? '' : '-mt-0.5'}" %>
+          <p><%= Rails.env.development? ? 'DEVELOPMENT' : 'Secure Connection' %></p>
+        </div>
+    </div>
+    <div class="p-10 px-6 sm:px-10 pt-0 space-y-2 2xl:space-y-4 my-auto">
+      <div class="py-6 2xl:py-10 space-y-3 2xl:space-y-5">
+        <h2 class="text-2xl sm:text-3xl">There was an issue accessing this program</h2>
+      </div>
+      <div class="text-left text-xs 2xl:text-sm space-y-1 2xl:space-y-2">
+        <p class="text-base 2xl:text-lg font-bold">This program could not be found</p>
+        <p class="text-neutral-400">If you think this is a mistake, contact the organizers that sent you here.</p>
+      </div>
+      <div class="flex pt-4 items-center"
+            data-controller="verification"> 
+        <div class="hidden" data-verification-target="historyButton">
+          <%= render 'shared/button', type: 'link', class: 'text-neutral-300', data: { action: 'click->verification#goBack' } do %>
+            Back
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </section>
+  
+</div>

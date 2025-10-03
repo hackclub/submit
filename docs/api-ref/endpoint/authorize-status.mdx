@@ -1,0 +1,9 @@
+---
+title: 'Check authorization status'
+openapi: 'GET /api/authorize/{auth_id}/status'
+---
+
+- Checks the current status of an authorization request
+- Returns completion details if the user has completed the authorization flow
+- Requires Bearer token authentication with your program API key
+- Poll this endpoint every 2-3 seconds until status becomes `completed`

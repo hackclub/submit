@@ -1,0 +1,9 @@
+---
+title: 'Create authorization request'
+openapi: 'POST /api/authorize'
+---
+
+- Creates a new authorization request for headless OAuth flows
+- Returns a popup URL that users can visit to complete identity verification
+- Requires Bearer token authentication with your program API key
+- Authorization requests expire after 15 minutes

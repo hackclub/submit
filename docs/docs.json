@@ -1,0 +1,91 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "willow",
+  "name": "Submit",
+  "colors": {
+    "primary": "#ec3750",
+    "light": "#ec3750",
+    "dark": "#ec3750"
+  },
+  "favicon": "/favicon.svg",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Submit",
+        "groups": [
+          {
+            "group": "Getting started",
+            "pages": [
+              "index",
+              "quickstart",
+              "settings"
+            ]
+          },
+          {
+            "group": "Advanced",
+            "pages": [
+              "headless"
+            ]
+          },
+                    {
+            "group": "API documentation",
+            "pages": [
+              "api-ref/endpoint/verify",
+              "api-ref/endpoint/authorize",
+              "api-ref/endpoint/authorize-status"
+            ]
+          }
+        ]
+      }
+    ],
+    "global": {
+      "anchors": [
+        {
+          "anchor": "Submit Admin",
+          "href": "https://submit.hackclub.com/admin",
+          "icon": "user-lock"
+        },
+        {
+          "anchor": "#submit-help",
+          "href": "https://hackclub.slack.com/archives/C09B1B4DZ41",
+          "icon": "slack"
+        }
+      ]
+    }
+  },
+  "logo": {
+    "light": "/logo/light.svg",
+    "dark": "/logo/dark.svg"
+  },
+  "navbar": {
+    "links": [
+      {
+        "label": "Support",
+        "href": "mailto:leo@hackclub.com"
+      }
+    ],
+    "primary": {
+      "type": "button",
+      "label": "Admin Dashboard",
+      "href": "https://submit.hackclub.com/admin"
+    }
+  },
+  "contextual": {
+    "options": [
+     "copy",
+     "view",
+     "chatgpt",
+     "claude",
+     "perplexity",
+     "mcp",
+     "cursor",
+     "vscode"
+   ]
+  },
+  "footer": {
+    "socials": {
+      "github": "https://github.com/hackclub",
+      "slack": "https://hackclub.slack.com/archives/C09C74HDSE5"
+    }
+  }
+}

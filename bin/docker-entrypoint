@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Non-blocking DB readiness check (max ~20s) to avoid delaying web start
+if [ -n "${DATABASE_URL:-}" ]; then
+  echo "[entrypoint] Using DATABASE_URL; quick DB readiness check..."
+  if ! bundle exec ruby -e "require 'pg'; require 'uri'; u=URI(ENV['DATABASE_URL']); PG.connect(host: u.hostname, port: u.port, dbname: u.path[1..-1], user: u.user, password: u.password){}" >/dev/null 2>&1; then
+    for i in {1..20}; do
+      if bundle exec ruby -e "require 'pg'; require 'uri'; u=URI(ENV['DATABASE_URL']); PG.connect(host: u.hostname, port: u.port, dbname: u.path[1..-1], user: u.user, password: u.password){}" >/dev/null 2>&1; then
+        echo "[entrypoint] DB became reachable."
+        break
+      fi
+      sleep 1
+    done
+  fi
+fi
+
+# Optionally run migrations in background to avoid blocking the web server
+if [ "${RUN_MIGRATIONS:-background}" = "background" ]; then
+  echo "[entrypoint] Running db:migrate and db:seed in background..."
+  (
+    set +e
+    bundle exec rails db:migrate && bundle exec rails db:seed
+  ) &
+elif [ "${RUN_MIGRATIONS:-background}" = "before" ]; then
+  echo "[entrypoint] Running db:migrate and db:seed before starting web..."
+  bundle exec rails db:migrate && bundle exec rails db:seed
+fi
+
+exec "$@"

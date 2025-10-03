@@ -1,0 +1,5 @@
+# Default configuration - Thruster works well out of the box
+# Add custom settings here if needed
+target_port: 80  # Internal Rails server port
+x_sendfile: true   # Enable X-Sendfile for better static file serving
+max_request_body: "100MB"

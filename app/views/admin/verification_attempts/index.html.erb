@@ -1,0 +1,186 @@
+<div class="grow text-left py-4 md:py-10 space-y-4 md:space-y-8 mx-2 md:mx-8">
+  <section>
+  <h1 class="text-2xl md:text-4xl font-bold">Verification Sessions</h1>
+  </section>
+
+  <section>
+  <form method="get" action="<%= admin_verification_attempts_path %>" class="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 mb-4 md:mb-8 text-xs md:text-sm">
+  <div class='flex flex-col space-y-1 md:space-y-2'>
+        <label for="program" class="text-default-questions text-sm">Program</label>
+        <div class="relative">
+          <select id="program" name="program" class="appearance-none bg-neutral-800 border-neutral-500 border rounded-md text-default-answers py-2 px-3 pr-8 focus:outline-2 outline-default-primary w-full text-sm">
+            <option value="">Any program</option>
+            <% @program_options.each do |p| %>
+              <option value="<%= p %>" <%= 'selected' if params[:program].to_s == p %>><%= p %></option>
+            <% end %>
+          </select>
+          <%= inline_svg 'chevron-down-micro.svg', class: 'absolute right-2 top-1/2 transform -translate-y-1/2 pointer-events-none size-4 text-neutral-400' %>
+        </div>
+      </div>
+      <div class='flex flex-col space-y-2'>
+        <label for="result" class="text-default-questions text-sm">Result</label>
+        <div class="relative">
+          <select id="result" name="result" class="appearance-none bg-neutral-800 border-neutral-500 border rounded-md text-default-answers py-2 px-3 pr-8 focus:outline-2 outline-default-primary w-full text-sm">
+            <option value="">Any result</option>
+            <option value="passed" <%= 'selected' if params[:result] == 'passed' %>>Passed</option>
+            <option value="failed" <%= 'selected' if params[:result] == 'failed' %>>Failed</option>
+            <option value="pending" <%= 'selected' if params[:result] == 'pending' %>>Pending</option>
+          </select>
+          <%= inline_svg 'chevron-down-micro.svg', class: 'absolute right-2 top-1/2 transform -translate-y-1/2 pointer-events-none size-4 text-neutral-400' %>
+        </div>
+      </div>
+      <div class='flex flex-col space-y-2'>
+        <label for="date_from" class="text-default-questions text-sm">From</label>
+        <input type="date" id="date_from" name="date_from" value="<%= params[:date_from] %>" class="bg-neutral-800 border-neutral-500 border rounded-md text-default-answers py-2 px-3 focus:outline-2 outline-default-primary text-sm" />
+      </div>
+      <div class='flex flex-col space-y-2'>
+        <label for="date_to" class="text-default-questions text-sm">To</label>
+        <input type="date" id="date_to" name="date_to" value="<%= params[:date_to] %>" class="bg-neutral-800 border-neutral-500 border rounded-md text-default-answers py-2 px-3 focus:outline-2 outline-default-primary text-sm" />
+      </div>
+      <div class='flex flex-col space-y-2'>
+        <label for="q" class="text-default-questions text-sm">Search</label>
+        <input id="q" name="q" value="<%= params[:q].to_s %>" placeholder="email, idv, program..." class="bg-neutral-800 border-neutral-500 border rounded-md text-default-answers py-2 px-3 focus:outline-2 outline-default-primary text-sm" />
+      </div>
+      <div class='flex flex-col space-y-2'>
+        <label for="email" class="text-default-questions text-sm">Email</label>
+        <input id="email" name="email" value="<%= params[:email].to_s %>" placeholder="email@domain.com" class="bg-neutral-800 border-neutral-500 border rounded-md text-default-answers py-2 px-3 focus:outline-2 outline-default-primary text-sm" />
+      </div>
+      <div class='flex flex-col space-y-2'>
+        <label for="idv_rec" class="text-default-questions text-sm">IDV</label>
+        <input id="idv_rec" name="idv_rec" value="<%= params[:idv_rec].to_s %>" placeholder="ident!..." class="bg-neutral-800 border-neutral-500 border rounded-md text-default-answers py-2 px-3 focus:outline-2 outline-default-primary text-sm" />
+      </div>
+      <div class='flex flex-col space-y-2 justify-end'>
+        <div class="flex space-x-2">
+          <%= render "shared/button", type: "primary", method: :submit, class: "inline-flex items-center justify-center px-3 py-2 text-sm font-medium rounded border border-transparent bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200" do %>
+            Apply
+          <% end %>
+          <%= render "shared/button", type: "secondary", link: admin_verification_attempts_path, class: "inline-flex items-center justify-center px-3 py-2 text-sm font-medium rounded border-2 border-blue-600 text-blue-500 hover:border-blue-700 hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200" do %>
+            Reset
+          <% end %>
+        </div>
+      </div>
+    </form>
+  </section>
+
+  <section class="flex flex-col space-y-4">
+    <% if @session_groups.blank? %>
+    <div class="flex flex-col">
+        <h2 class="text-3xl font-bold">Sessions</h2>
+        <div class="text-default-questions/75 text-center py-8">No verification sessions found.</div>
+      </div>
+    <% else %>
+      <div class="flex justify-between items-center">
+        <h2 class="text-3xl font-bold">Sessions</h2>
+        <div class="text-default-questions/75">
+          Page <%= @page %> of <%= @total_pages %> • <%= @total_count %> total
+        </div>
+      </div>
+      
+      <div class="space-y-4">
+        <% @session_groups.each do |s| %>
+          <div class="bg-neutral-800/50 rounded-lg p-6">
+            <div class="grid grid-cols-3 gap-6 mb-6">
+              <div>
+                <p class="text-default-questions/75 text-sm">Program</p>
+                <p class="text-default-answers font-semibold"><%= s[:program].presence || '—' %></p>
+              </div>
+              <div>
+                <p class="text-default-questions/75 text-sm">Session Time</p>
+                <p class="text-default-answers text-sm">
+                  <%= s[:first_at]&.utc&.strftime('%Y-%m-%d %H:%M:%S') %> → <%= s[:last_at]&.utc&.strftime('%Y-%m-%d %H:%M:%S') %>
+                </p>
+              </div>
+              <div>
+                <p class="text-default-questions/75 text-sm">Result</p>
+                <% if s[:result] == 'passed' %>
+                  <span class="inline-flex px-2 py-1 text-xs font-semibold rounded bg-green-300/10 text-green-300">Passed</span>
+                <% elsif s[:result].to_s.start_with?('failed') %>
+                  <span class="inline-flex px-2 py-1 text-xs font-semibold rounded bg-red-300/10 text-red-300"><%= s[:result].capitalize %></span>
+                <% elsif s[:result] == 'pending' %>
+                  <span class="inline-flex px-2 py-1 text-xs font-semibold rounded bg-yellow-300/10 text-yellow-300">Pending</span>
+                <% else %>
+                  <span class="inline-flex px-2 py-1 text-xs font-semibold rounded bg-neutral-200/10 text-neutral-300">Unknown</span>
+                <% end %>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-6">
+              <div>
+                <h4 class="text-default-questions font-semibold mb-3">Session Details</h4>
+                <div class="space-y-2 text-sm">
+                  <div class="grid grid-cols-3 gap-2">
+                    <span class="text-default-questions/75">Full name:</span>
+                    <span class="col-span-2 text-default-answers"><%= [s[:first_name], s[:last_name]].compact.join(' ').presence || '—' %></span>
+                  </div>
+                  <div class="grid grid-cols-3 gap-2">
+                    <span class="text-default-questions/75">Email:</span>
+                    <span class="col-span-2 text-default-answers"><%= s[:email].presence || '—' %></span>
+                  </div>
+                  <div class="grid grid-cols-3 gap-2">
+                    <span class="text-default-questions/75">IDV Record:</span>
+                    <span class="col-span-2 text-default-answers font-mono text-xs"><%= s[:idv_rec].presence || '—' %></span>
+                  </div>
+                  <div class="grid grid-cols-3 gap-2">
+                    <span class="text-default-questions/75">Submit ID:</span>
+                    <span class="col-span-2 text-default-answers font-mono text-xs"><%= s[:submit_id].presence || '—' %></span>
+                  </div>
+                  <div class="grid grid-cols-3 gap-2">
+                    <span class="text-default-questions/75">IP Address:</span>
+                    <span class="col-span-2 text-default-answers"><%= s[:ip].presence || '—' %></span>
+                  </div>
+                  <% if s[:rejection_reason].present? %>
+                    <div class="grid grid-cols-3 gap-2">
+                      <span class="text-default-questions/75">Rejection:</span>
+                      <span class="col-span-2 text-red-300"><%= s[:rejection_reason] %></span>
+                    </div>
+                  <% end %>
+                  <% if s[:final_url].present? %>
+                    <div class="grid grid-cols-3 gap-2">
+                      <span class="text-default-questions/75">Redirected to:</span>
+                      <span class="col-span-2 text-default-answers"><a href="<%= s[:final_url] %>" target="_blank" rel="noreferrer noopener" class="text-blue-400 hover:text-blue-300 underline break-all"><%= s[:final_url] %></a></span>
+                    </div>
+                  <% end %>
+                </div>
+              </div>
+              <div>
+                <h4 class="text-default-questions font-semibold mb-3">Timeline</h4>
+                <div class="space-y-1">
+                  <% s[:events].sort_by(&:created_at).each do |e| %>
+                    <div class="flex items-center space-x-2 text-sm">
+                      <span class="text-default-questions/75 font-mono text-xs"><%= e.created_at&.utc&.strftime('%H:%M:%S') %></span>
+                      <span class="text-default-answers font-medium"><%= e.event_type.humanize %></span>
+                      <% if e.event_type == 'oauth_failed' && e.metadata.present? %>
+                        <% reason = (e.metadata['reason'] || e.metadata[:reason]) %>
+                        <span class="inline-flex px-2 py-0.5 text-xs font-semibold rounded bg-red-300/10 text-red-300"><%= (reason || 'failed').to_s.tr('_',' ').capitalize %></span>
+                      <% end %>
+                    </div>
+                  <% end %>
+                </div>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+      
+      <div class="flex justify-between items-center pt-4">
+        <div class="text-default-questions/75">
+          Page <%= @page %> of <%= @total_pages %> • <%= @total_count %> total
+        </div>
+        <div class="flex space-x-2">
+          <% prev_params = params.permit(:q, :program, :result, :date_from, :date_to, :email, :idv_rec, :submit_id).to_h.merge(page: [@page - 1, 1].max) %>
+          <% next_params = params.permit(:q, :program, :result, :date_from, :date_to, :email, :idv_rec, :submit_id).to_h.merge(page: [@page + 1, @total_pages].min) %>
+          <% if @page > 1 %>
+            <%= render "shared/button", type: "secondary", link: admin_verification_attempts_path(prev_params) do %>
+              ← Previous
+            <% end %>
+          <% end %>
+          <% if @page < @total_pages && @total_pages > 0 %>
+            <%= render "shared/button", type: "secondary", link: admin_verification_attempts_path(next_params) do %>
+              Next →
+            <% end %>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+  </section>
+</div>
