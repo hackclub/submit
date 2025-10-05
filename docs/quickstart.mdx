@@ -12,7 +12,7 @@ icon: "rocket"
   <Accordion icon="pen" title="Create the fields">
     Create the following fields on your `YSWS Project Submission` table.
     <ResponseField name="idv_rec" type="Single Line Text" required/>
-    <ResponseField name="Identity Verified" type="Checkbox" required/>
+    <ResponseField name="idv_verified" type="Checkbox" required/>
   </Accordion>
   <Accordion icon="robot" title="Create the automation">
     Add a new automation on **record creation** that runs this script:
@@ -39,7 +39,7 @@ icon: "rocket"
     const response = await fetch(requestUrl).then(res => res.json());
 
     table.updateRecordAsync(recordId, {
-        "Identity Verified": response.verified
+        "idv_verified": response.verified
     });
     ```
     <Warning>You must set the input variable `recordId` to record ID in the left sidebar!</Warning>
