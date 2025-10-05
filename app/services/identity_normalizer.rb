@@ -25,6 +25,12 @@ class IdentityNormalizer
       normalized['addresses'] = [chosen]
     end
 
+    first = normalized['first_name'].to_s.strip
+    last  = normalized['last_name'].to_s.strip
+    if first.present? || last.present?
+      normalized['full_name'] = [first, last].reject(&:blank?).join(' ').strip
+    end
+
     normalized
   end
 end

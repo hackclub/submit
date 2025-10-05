@@ -223,7 +223,16 @@ class IdentityController < ApplicationController
   return redirect_to root_path, alert: 'This program is closed.' unless program.active?
 
   # Include program slug param on the form URL too
-  final_url = UserJourneyFlow.build_form_url(program_config: { form_url: program.form_url, mappings: program.mappings.presence }, identity_key: identity_key, user_data: user_data, state_data: state_data)
+  final_url = UserJourneyFlow.build_form_url(
+    program_config: {
+      form_url: program.form_url,
+      mappings: program.mappings.presence,
+      scopes: program.scopes
+    },
+    identity_key: identity_key,
+    user_data: user_data,
+    state_data: state_data
+  )
   uri_tmp = URI(final_url)
   q = URI.decode_www_form(uri_tmp.query.to_s)
   q << ['program', program.slug]

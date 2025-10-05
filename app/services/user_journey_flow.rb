@@ -43,10 +43,32 @@ class UserJourneyFlow
     form_url = URI(program_config[:form_url])
     is_airtable, identity_param = identity_param_for(form_url)
 
+    raw_scopes = program_config[:scopes]
+    scope_hash = if raw_scopes.respond_to?(:to_h)
+                   raw_scopes.to_h
+                 elsif raw_scopes.is_a?(Hash)
+                   raw_scopes
+                 else
+                   {}
+                 end.transform_keys { |k| k.to_s }
+    boolean_type = ActiveModel::Type::Boolean.new
+    scoped_fields = %w[first_name last_name full_name email birthday phone_number addresses]
+    scope_enabled = lambda do |field|
+      field_name = field.to_s
+      return true unless scoped_fields.include?(field_name)
+      boolean_type.cast(scope_hash[field_name])
+    end
+
+    append_param = lambda do |key, value|
+      return if value.blank?
+      encoded = URI.encode_www_form([[key, value]])
+      form_url.query = [form_url.query, encoded].compact.join('&')
+    end
+
     # Preserve original params if present
     if state_data['originalParams'].present?
       URI.decode_www_form(state_data['originalParams']).each do |k, v|
-        form_url.query = [form_url.query, URI.encode_www_form([[k, v]])].compact.join('&')
+        append_param.call(k, v)
       end
     end
 
@@ -57,7 +79,7 @@ class UserJourneyFlow
 
     submit_id = state_data['submit_id']
     idv_rec_with_submit = submit_id.present? ? "#{identity_key}:#{submit_id}" : identity_key
-    form_url.query = [form_url.query, URI.encode_www_form([[identity_param, idv_rec_with_submit]])].compact.join('&')
+    append_param.call(identity_param, idv_rec_with_submit)
 
     # Mappings
     mappings = program_config[:mappings]
@@ -65,18 +87,21 @@ class UserJourneyFlow
       mappings.each do |user_field, form_field|
         value = user_data[user_field.to_s]
         next unless value.present?
+        next unless scope_enabled.call(user_field)
         key = is_airtable ? "prefill_#{form_field}" : form_field
-        form_url.query = [form_url.query, URI.encode_www_form([[key, value]])].compact.join('&')
+        append_param.call(key, value)
       end
     else
       if is_airtable
-        form_url.query = [form_url.query, URI.encode_www_form([["prefill_First+Name", user_data['first_name']].compact])].compact.join('&') if user_data['first_name']
-        form_url.query = [form_url.query, URI.encode_www_form([["prefill_Last+Name", user_data['last_name']].compact])].compact.join('&') if user_data['last_name']
-        form_url.query = [form_url.query, URI.encode_www_form([["prefill_Email", user_data['email']].compact])].compact.join('&') if user_data['email']
+        append_param.call('prefill_Full+Name', user_data['full_name']) if scope_enabled.call('full_name')
+        append_param.call('prefill_First+Name', user_data['first_name']) if scope_enabled.call('first_name')
+        append_param.call('prefill_Last+Name', user_data['last_name']) if scope_enabled.call('last_name')
+        append_param.call('prefill_Email', user_data['email']) if scope_enabled.call('email')
       else
-        form_url.query = [form_url.query, URI.encode_www_form([["first_name", user_data['first_name']].compact])].compact.join('&') if user_data['first_name']
-        form_url.query = [form_url.query, URI.encode_www_form([["last_name", user_data['last_name']].compact])].compact.join('&') if user_data['last_name']
-        form_url.query = [form_url.query, URI.encode_www_form([["email", user_data['email']].compact])].compact.join('&') if user_data['email']
+        append_param.call('full_name', user_data['full_name']) if scope_enabled.call('full_name')
+        append_param.call('first_name', user_data['first_name']) if scope_enabled.call('first_name')
+        append_param.call('last_name', user_data['last_name']) if scope_enabled.call('last_name')
+        append_param.call('email', user_data['email']) if scope_enabled.call('email')
       end
     end
 

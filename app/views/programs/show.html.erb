@@ -21,7 +21,7 @@
         <div class="text-left space-y-2 2xl:space-y-4">
           <h3 class="text-lg 2xl:text-xl font-bold">This will allow <span class="text-[var(--program-accent)] font-bold"><%= @program.name %></span> to:</h3>
           <div class="text-sm 2xl:text-base flex flex-col space-y-1 2xl:space-y-2">
-            <% scopes = @program.scopes %>
+            <% scopes = @program.scopes || {} %>
             <div class="flex space-x-3 items-center">
               <%= inline_svg 'user-micro.svg', class: 'size-4' %>
               <p>Verify that you are a real person</p>
@@ -30,16 +30,19 @@
               <%= inline_svg 'check-badge-micro.svg', class: 'size-4' %>
               <p>Verify your eligibility to participate</p>
             </div>
-            <% if scopes["first_name"] || scopes["last_name"] %>
+            <% name_scope_message = if scopes["full_name"]
+                'See your legal full name'
+              elsif scopes["first_name"] && scopes["last_name"]
+                'See your legal full name'
+              elsif scopes["first_name"]
+                'See your legal first name'
+              elsif scopes["last_name"]
+                'See your legal last name'
+              end %>
+            <% if name_scope_message.present? %>
               <div class="flex space-x-3 items-center">
                 <%= inline_svg 'id-micro.svg', class: 'size-4' %>
-                <% if scopes["first_name"] && scopes["last_name"] %>
-                  <p>See your legal full name</p>
-                <% elsif scopes["first_name"] %>
-                  <p>See your legal first name</p>
-                <% elsif scopes["last_name"] %>
-                  <p>See your legal last name</p>
-                <% end %>
+                <p><%= name_scope_message %></p>
               </div>
             <% end %>
             <% if scopes["email"] %>

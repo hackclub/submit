@@ -165,7 +165,7 @@
       <div class="grid grid-cols-1 gap-y-1 text-sm">
         <% scopes = @program.scopes || {} %>
         <% sensitive = %w[birthday phone_number addresses] %>
-        <% %w[first_name last_name email birthday phone_number addresses].each do |key| %>
+        <% %w[first_name last_name full_name email birthday phone_number addresses].each do |key| %>
           <% current_on = scopes[key].present? ? ActiveModel::Type::Boolean.new.cast(scopes[key]) : false %>
           <% disable_for_author = (current_admin&.ysws_author? && sensitive.include?(key) && !current_on) %>
           <label class='flex space-x-2 items-center'>
