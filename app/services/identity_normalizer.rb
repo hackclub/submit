@@ -9,6 +9,7 @@ class IdentityNormalizer
     if normalized['email'].to_s.strip.empty? && normalized['primary_email'].present?
       normalized['email'] = normalized['primary_email']
     end
+    normalized['slack_id'] = normalized['slack_id'].presence
     addrs = normalized['addresses'] || normalized[:addresses]
     if addrs.is_a?(Array) && addrs.any?
       primary_list = addrs.select do |a|

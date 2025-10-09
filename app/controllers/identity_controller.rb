@@ -253,16 +253,30 @@ class IdentityController < ApplicationController
       event_type: 'oauth_passed',
       program: state_data['program'],
       idv_rec: identity_key,
-  email: user_data['email'],
-      metadata: { first_name: user_data['first_name'], last_name: user_data['last_name'], verification_status: user_data['verification_status'], ysws_eligible: user_data['ysws_eligible'], original_params: state_data['originalParams'], submit_id: submit_id }
+      email: user_data['email'],
+      metadata: {
+        first_name: user_data['first_name'],
+        last_name: user_data['last_name'],
+        slack_id: user_data['slack_id'].presence,
+        verification_status: user_data['verification_status'],
+        ysws_eligible: user_data['ysws_eligible'],
+        original_params: state_data['originalParams'],
+        submit_id: submit_id
+      }.compact
     )
 
     safe_create_journey_event(
       event_type: 'redirect_to_form',
       program: state_data['program'],
       idv_rec: identity_key,
-  email: user_data['email'],
-      metadata: { final_url: final_url, first_name: user_data['first_name'], last_name: user_data['last_name'], submit_id: submit_id }
+      email: user_data['email'],
+      metadata: {
+        final_url: final_url,
+        first_name: user_data['first_name'],
+        last_name: user_data['last_name'],
+        slack_id: user_data['slack_id'].presence,
+        submit_id: submit_id
+      }.compact
     )
 
     redirect_to final_url, allow_other_host: true

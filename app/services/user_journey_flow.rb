@@ -52,7 +52,7 @@ class UserJourneyFlow
                    {}
                  end.transform_keys { |k| k.to_s }
     boolean_type = ActiveModel::Type::Boolean.new
-    scoped_fields = %w[first_name last_name full_name email birthday phone_number addresses]
+    scoped_fields = %w[first_name last_name full_name email birthday phone_number addresses slack_id]
     scope_enabled = lambda do |field|
       field_name = field.to_s
       return true unless scoped_fields.include?(field_name)

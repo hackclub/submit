@@ -106,7 +106,7 @@ class Program < ApplicationRecord
     permitted
   end
 
-  ALLOWED_SCOPE_KEYS = %w[first_name last_name full_name email birthday phone_number addresses]
+  ALLOWED_SCOPE_KEYS = %w[first_name last_name full_name email birthday phone_number addresses slack_id]
 
   def regenerate_api_key!
     self.api_key = generate_secure_api_key
