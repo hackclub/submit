@@ -370,7 +370,7 @@
       },
       "IdentityResponse": {
         "type": "object",
-  "description": "Normalized identity data. Fields may vary based on program scopes. The minimal default set includes: id, verification_status, ysws_eligible, email.",
+        "description": "Normalized identity data. Fields may vary based on program scopes. The minimal default set includes: id, verification_status, ysws_eligible, email. Additional fields like slack_id can be requested via program scopes.",
         "properties": {
           "id": { "type": "string", "description": "Identity ID" },
           "verification_status": {
@@ -382,6 +382,7 @@
           "email": { "type": "string", "format": "email" },
           "first_name": { "type": "string" },
           "last_name": { "type": "string" },
+          "slack_id": { "type": "string", "description": "Slack user ID (available when slack_id scope is enabled for the program)" },
           "rejection_reason": { "type": "string" }
         },
         "additionalProperties": true

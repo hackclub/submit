@@ -32,11 +32,11 @@ class Admin::VerificationAttemptsController < Admin::BaseController
     events_scope = events_scope.where(idv_rec: @filters[:idv_rec]) if @filters[:idv_rec]
     events_scope = events_scope.where("metadata ->> 'submit_id' = ?", @filters[:submit_id]) if @filters[:submit_id]
 
-    # Free text search: email / idv_rec / program / IP (ILIKE) or exact submit_id
+    # Free text search: email / idv_rec / program / IP / slack_id (ILIKE) or exact submit_id
     if @filters[:q]
       q = @filters[:q]
       events_scope = events_scope.where(
-        "email ILIKE :q OR idv_rec ILIKE :q OR program ILIKE :q OR request_ip ILIKE :q OR metadata ->> 'submit_id' = :q_eq",
+        "email ILIKE :q OR idv_rec ILIKE :q OR program ILIKE :q OR request_ip ILIKE :q OR metadata ->> 'submit_id' = :q_eq OR metadata ->> 'slack_id' ILIKE :q",
         q: "%#{q}%", q_eq: q
       )
     end
@@ -57,11 +57,11 @@ class Admin::VerificationAttemptsController < Admin::BaseController
       end
     end
 
-    # Extra free text search at the session level (covers submit_id etc.)
+    # Extra free text search at the session level (covers submit_id, slack_id etc.)
     if @filters[:q]
       qd = @filters[:q].downcase
       sessions = sessions.select do |s|
-        [s[:program], s[:email], s[:idv_rec], s[:ip], s[:submit_id]].compact.any? { |v| v.to_s.downcase.include?(qd) }
+        [s[:program], s[:email], s[:idv_rec], s[:ip], s[:submit_id], s[:slack_id]].compact.any? { |v| v.to_s.downcase.include?(qd) }
       end
     end
 
@@ -136,6 +136,7 @@ class Admin::VerificationAttemptsController < Admin::BaseController
           final_url: nil,
           result: nil,
           submit_id: nil,
+          slack_id: nil,
           latest_oauth_result: nil,
           latest_oauth_time: nil
         }
@@ -203,14 +204,17 @@ class Admin::VerificationAttemptsController < Admin::BaseController
     m = e.metadata.is_a?(Hash) ? e.metadata : {}
     fn = m['first_name'] || m[:first_name]
     ln = m['last_name'] || m[:last_name]
-    s[:first_name] ||= fn
-    s[:last_name] ||= ln
+    slack = m['slack_id'] || m[:slack_id]
+    
+    s[:first_name] ||= fn.presence
+    s[:last_name] ||= ln.presence
     s[:original_params] ||= (m['original_params'] || m[:original_params] || (m['query_params'] || m[:query_params]))
     s[:final_url] ||= (m['final_url'] || m[:final_url])
-  s[:submit_id] ||= (m['submit_id'] || m[:submit_id])
-  # capture rejection reason whenever present
-  rej = m['rejection_reason'] || m[:rejection_reason]
-  s[:rejection_reason] = rej if rej.present?
+    s[:submit_id] ||= (m['submit_id'] || m[:submit_id])
+    s[:slack_id] ||= slack.presence
+    # capture rejection reason whenever present
+    rej = m['rejection_reason'] || m[:rejection_reason]
+    s[:rejection_reason] = rej if rej.present?
 
     # initialize flags
     s[:saw_stage] ||= false

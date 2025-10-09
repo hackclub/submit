@@ -130,15 +130,16 @@ class Popup::AuthorizeController < ApplicationController
         event_type: 'popup_oauth_success',
         program: auth_request.program,
         idv_rec: idv_rec,
-  email: user_data['email'],
+        email: user_data['email'],
         request_ip: request.remote_ip,
-        metadata: { 
+        metadata: {
           auth_id: auth_id,
           submit_id: submit_id,
-          first_name: user_data['first_name'], 
+          first_name: user_data['first_name'],
           last_name: user_data['last_name'],
+          slack_id: user_data['slack_id'].presence,
           verification_status: user_data['verification_status']
-        }
+        }.compact
       ) rescue nil
 
       # Clear session data
