@@ -7,7 +7,7 @@
 - **Database**: `bin/rails db:prepare` (setup), `bin/rails db:seed` (seed with superadmin)
 
 ## Architecture
-- **Rails 7.1** app centered on OAuth with Hack Club Account; entry point is `ProgramsController#show` (route: `/:program`)
+- **Rails 7.1** app centered on OAuth with Hack Club Auth; entry point is `ProgramsController#show` (route: `/:program`)
 - **Core controllers**: `IdentityController` (browser OAuth), `Api::VerifyController` (server verification), `Popup::AuthorizeController` (partner popup flow), `Admin::SessionsController` (admin login)
 - **Key models**: `Program` (stores theming, scopes, mappings), `AuthorizedSubmitToken` (submit tokens), `AuthorizationRequest` (popup flow), `VerificationAttempt` (audit log), `AdminUser`, `UserJourneyEvent`
 - **Services**: `StateToken` (OAuth state generation/validation), `IdentityNormalizer` (normalize identity payloads), `UserJourneyFlow` (journey helpers)

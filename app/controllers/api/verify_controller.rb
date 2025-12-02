@@ -173,11 +173,11 @@ module Api
 
       if user_data['verification_status'] != 'verified' || user_data['rejection_reason'].present?
         message = if user_data['rejection_reason'].present?
-          'Your submission was rejected. Visit account.hackclub.com for more info.'
+          'Your submission was rejected. Visit auth.hackclub.com for more info.'
         elsif user_data['verification_status'] == 'pending'
           'Your identity verification is pending. Please wait for approval.'
         else
-          "We couldn't find an approved verification yet. Check account.hackclub.com for more information."
+          "We couldn't find an approved verification yet. Check auth.hackclub.com for more information."
         end
 
         attempt = create_attempt_safely!(

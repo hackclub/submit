@@ -88,9 +88,9 @@ class Popup::AuthorizeController < ApplicationController
         when 'pending'
           'Your identity verification is pending. Please wait for approval.'
         when 'rejected'
-          'Your submission was rejected. Visit account.hackclub.com for more info.'
+          'Your submission was rejected. Visit auth.hackclub.com for more info.'
         else
-          "We couldn't find an approved verification yet. Visit account.hackclub.com for more information."
+          "We couldn't find an approved verification yet. Visit auth.hackclub.com for more information."
         end
         return render :error, locals: { message: message }, layout: 'application'
       end
