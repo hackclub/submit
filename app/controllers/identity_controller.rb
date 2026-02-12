@@ -27,7 +27,7 @@ class IdentityController < ApplicationController
   # Base URL for redirect_uri; prefer request.base_url if NEXTAUTH_URL missing
   nextauth_url = ENV['NEXTAUTH_URL'].presence || request.base_url
     unless nextauth_url.present?
-      Sentry.capture_message('NEXTAUTH_URL environment variable is not set')
+      Appsignal.send_error(RuntimeError.new('NEXTAUTH_URL environment variable is not set'))
       Rails.logger.error('NEXTAUTH_URL environment variable is not set')
       return render json: { error: 'Server configuration error' }, status: :internal_server_error
     end
@@ -247,7 +247,7 @@ class IdentityController < ApplicationController
     rescue ActiveRecord::RecordNotUnique
       # If it already exists, continue (idempotent on refresh)
     rescue => e
-      Sentry.capture_exception(e)
+      Appsignal.send_error(e)
       Rails.logger.error("Failed to issue AuthorizedSubmitToken: #{e.class}: #{e.message}")
     end
 
@@ -289,7 +289,7 @@ class IdentityController < ApplicationController
 
   # Centralized failure handler for OAuth flow
   def oauth_fail(reason:, alert_message: 'Identity verification failed', program: nil, idv_rec: nil, email: nil, extra_metadata: {})
-    Sentry.capture_message("OAuth failure: #{reason} - #{alert_message}") if alert_message.to_s.downcase.include?('failed')
+    Appsignal.send_error(RuntimeError.new("OAuth failure: #{reason} - #{alert_message}")) if alert_message.to_s.downcase.include?('failed')
     base_metadata = { reason: reason }.merge(extra_metadata || {})
     Rails.logger.warn("OAuth failure: #{reason} metadata=#{base_metadata.inspect}")
     safe_create_journey_event(
@@ -313,7 +313,7 @@ class IdentityController < ApplicationController
       metadata: metadata.presence
     )
   rescue => e
-    Sentry.capture_exception(e)
+    Appsignal.send_error(e)
     Rails.logger.error("UserJourneyEvent create failed (#{event_type}): #{e.class}: #{e.message}")
   end
 
