@@ -9,7 +9,6 @@
     <%= csp_meta_tag %>
     <%= stylesheet_link_tag "tailwind", "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>
-    <%= Sentry.get_trace_propagation_meta.html_safe %>
   </head>
   <body class="border-2 md:border-4 border-dashed border-orange-300 box-border text-sm md:text-base">
   <%= render 'application/helpscout_beacon' %>

@@ -111,7 +111,7 @@ class OmniauthCallbacksController < ApplicationController
     rescue ActiveRecord::RecordNotUnique
       # Already exists, continue (idempotent on refresh)
     rescue => e
-      Sentry.capture_exception(e)
+      Appsignal.send_error(e)
       Rails.logger.error("Failed to issue AuthorizedSubmitToken: #{e.class}: #{e.message}")
     end
 
@@ -228,7 +228,7 @@ class OmniauthCallbacksController < ApplicationController
 
     render 'popup/authorize/success', layout: 'application'
   rescue => e
-    Sentry.capture_exception(e)
+    Appsignal.send_error(e)
     Rails.logger.error("Popup OAuth error: #{e.message}")
     UserJourneyEvent.create!(
       event_type: 'popup_oauth_error',
@@ -251,7 +251,7 @@ class OmniauthCallbacksController < ApplicationController
   end
 
   def oauth_fail(reason:, alert_message: 'Identity verification failed', program: nil, idv_rec: nil, email: nil, extra_metadata: {})
-    Sentry.capture_message("OAuth failure: #{reason} - #{alert_message}") if alert_message.to_s.downcase.include?('failed')
+    Appsignal.send_error(RuntimeError.new("OAuth failure: #{reason} - #{alert_message}")) if alert_message.to_s.downcase.include?('failed')
     base_metadata = { reason: reason }.merge(extra_metadata || {})
     Rails.logger.warn("OAuth failure: #{reason} metadata=#{base_metadata.inspect}")
     safe_create_journey_event(
@@ -274,7 +274,7 @@ class OmniauthCallbacksController < ApplicationController
       metadata: metadata.presence
     )
   rescue => e
-    Sentry.capture_exception(e)
+    Appsignal.send_error(e)
     Rails.logger.error("UserJourneyEvent create failed (#{event_type}): #{e.class}: #{e.message}")
   end
 end

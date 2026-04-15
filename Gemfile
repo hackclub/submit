@@ -10,8 +10,7 @@ gem 'jbuilder'
 gem 'bootsnap', require: false
 gem 'pg', '~> 1.5'
 gem 'dotenv-rails', groups: [:development, :test]
-gem "sentry-ruby"
-gem "sentry-rails"
+gem "appsignal"
 gem 'rack-attack'
 gem 'rack-timeout'
 gem 'thruster'
