@@ -1,0 +1,7 @@
+admin:
+  email: admin@example.com
+  role: 0
+
+ysws_author:
+  email: author@example.com
+  role: 2

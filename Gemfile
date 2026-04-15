@@ -16,6 +16,8 @@ gem 'rack-timeout'
 gem 'thruster'
 gem "tailwindcss-rails", "~> 4.0"
 gem 'inline_svg'
+gem 'omniauth-hack_club'
+gem 'omniauth-rails_csrf_protection'
 
 group :development, :test do
   gem 'debug'
