@@ -108,13 +108,14 @@ class Program < ApplicationRecord
 
   ALLOWED_SCOPE_KEYS = %w[first_name last_name full_name email birthday phone_number addresses slack_id]
 
-  # Map program scope keys to OIDC scope strings for auth.hackclub.com
-  # Valid scopes: openid, profile, email, phone, address, birthdate,
-  #               slack_id, verification_status
+  # Map program scope keys to auth.hackclub.com scope strings.
+  # Mix of OIDC standard scopes (birthdate, address, phone) and
+  # Hack Club custom scopes (name, slack_id, verification_status).
+  # See: https://auth.hackclub.com/docs/oidc-guide
   OAUTH_SCOPE_MAP = {
-    'first_name' => 'profile',
-    'last_name' => 'profile',
-    'full_name' => 'profile',
+    'first_name' => 'name',
+    'last_name' => 'name',
+    'full_name' => 'name',
     'email' => 'email',
     'birthday' => 'birthdate',
     'phone_number' => 'phone',

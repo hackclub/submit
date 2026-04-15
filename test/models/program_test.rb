@@ -8,16 +8,16 @@ class ProgramTest < ActiveSupport::TestCase
     assert_includes scopes, 'verification_status'
   end
 
-  test "oauth_scopes maps name fields to profile scope" do
+  test "oauth_scopes maps name fields to name scope" do
     program = Program.new(
       slug: 'test', name: 'T', form_url: 'https://forms.hackclub.com/x',
       owner_email: 'a@b.com', api_key: 'pk_unique1',
       scopes: { 'first_name' => true, 'last_name' => true }
     )
     scopes = program.oauth_scopes.split(' ')
-    assert_includes scopes, 'profile'
-    # profile should only appear once even though both first_name and last_name are enabled
-    assert_equal 1, scopes.count('profile')
+    assert_includes scopes, 'name'
+    # name should only appear once even though both first_name and last_name are enabled
+    assert_equal 1, scopes.count('name')
   end
 
   test "oauth_scopes maps birthday to birthdate and addresses to address" do
