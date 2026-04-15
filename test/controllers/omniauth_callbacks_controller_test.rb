@@ -22,7 +22,8 @@ class OmniauthCallbacksControllerTest < ActionDispatch::IntegrationTest
     get "/auth/hack_club/callback"
     assert_response :redirect
     location = response.location
-    assert location.include?('airtable.com'), "Expected redirect to form URL, got: #{location}"
+    form_host = URI.parse(programs(:test_program).form_url).host
+    assert_equal form_host, URI.parse(location).host, "Expected redirect to program form host, got: #{location}"
   end
 
   test "user flow rejects unverified users" do

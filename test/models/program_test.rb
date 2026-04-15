@@ -8,39 +8,39 @@ class ProgramTest < ActiveSupport::TestCase
     assert_includes scopes, 'verification_status'
   end
 
-  test "oauth_scopes maps name fields to name scope" do
+  test "oauth_scopes maps name fields to profile scope" do
     program = Program.new(
-      slug: 'test', name: 'T', form_url: 'https://airtable.com/x',
+      slug: 'test', name: 'T', form_url: 'https://forms.hackclub.com/x',
       owner_email: 'a@b.com', api_key: 'pk_unique1',
       scopes: { 'first_name' => true, 'last_name' => true }
     )
     scopes = program.oauth_scopes.split(' ')
-    assert_includes scopes, 'name'
-    # name should only appear once even though both first_name and last_name are enabled
-    assert_equal 1, scopes.count('name')
+    assert_includes scopes, 'profile'
+    # profile should only appear once even though both first_name and last_name are enabled
+    assert_equal 1, scopes.count('profile')
   end
 
-  test "oauth_scopes includes birthday and addresses when enabled" do
+  test "oauth_scopes maps birthday to birthdate and addresses to address" do
     program = programs(:test_program)
     scopes = program.oauth_scopes.split(' ')
-    assert_includes scopes, 'birthday'
-    assert_includes scopes, 'addresses'
+    assert_includes scopes, 'birthdate'
+    assert_includes scopes, 'address'
   end
 
   test "oauth_scopes excludes disabled scopes" do
     program = Program.new(
-      slug: 'minimal', name: 'M', form_url: 'https://airtable.com/x',
+      slug: 'minimal', name: 'M', form_url: 'https://forms.hackclub.com/x',
       owner_email: 'a@b.com', api_key: 'pk_unique2',
       scopes: { 'email' => true, 'birthday' => false }
     )
     scopes = program.oauth_scopes.split(' ')
     assert_includes scopes, 'email'
-    refute_includes scopes, 'birthday'
+    refute_includes scopes, 'birthdate'
   end
 
   test "oauth_scopes handles blank scopes" do
     program = Program.new(
-      slug: 'blank', name: 'B', form_url: 'https://airtable.com/x',
+      slug: 'blank', name: 'B', form_url: 'https://forms.hackclub.com/x',
       owner_email: 'a@b.com', api_key: 'pk_unique3',
       scopes: {}
     )
