@@ -108,6 +108,30 @@ class Program < ApplicationRecord
 
   ALLOWED_SCOPE_KEYS = %w[first_name last_name full_name email birthday phone_number addresses slack_id]
 
+  # Map program scope keys to OAuth scope strings for auth.hackclub.com
+  OAUTH_SCOPE_MAP = {
+    'first_name' => 'name',
+    'last_name' => 'name',
+    'full_name' => 'name',
+    'email' => 'email',
+    'birthday' => 'birthday',
+    'phone_number' => 'phone_number',
+    'addresses' => 'addresses',
+    'slack_id' => 'slack_id'
+  }.freeze
+
+  def oauth_scopes
+    result = Set.new(%w[openid verification_status])
+    if scopes.present?
+      scopes.each do |key, val|
+        next unless ActiveModel::Type::Boolean.new.cast(val)
+        mapped = OAUTH_SCOPE_MAP[key.to_s]
+        result << mapped if mapped
+      end
+    end
+    result.to_a.join(' ')
+  end
+
   def regenerate_api_key!
     self.api_key = generate_secure_api_key
     save!

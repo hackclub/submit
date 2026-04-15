@@ -3,26 +3,25 @@ Rails.application.routes.draw do
   # L4/L7 health check (no DB)
   get '/healthz', to: 'health#show'
 
-  # OAuth entrypoint: builds the Identity Vault authorize URL
+  # OmniAuth callbacks
+  get '/auth/hack_club/callback', to: 'omniauth_callbacks#hack_club'
+  get '/auth/failure', to: 'omniauth_callbacks#failure'
+
+  # OAuth entrypoints (store context in session, then redirect to OmniAuth)
   get '/api/identity/url', to: 'identity#url'
   get '/identity/start', to: 'identity#start'
 
-  # OAuth callback handler
-  get '/identity', to: 'identity#callback'
   get '/admin/login', to: 'admin/sessions#new', as: :admin_login
   delete '/admin/logout', to: 'admin/sessions#destroy', as: :admin_logout
-  get '/admin/callback', to: 'admin/sessions#callback', as: :admin_callback
 
   # Verify endpoint (API namespace)
   get '/api/verify', to: 'api/verify#index'
-  
+
   # Authorize API endpoints
   post '/api/authorize', to: 'api/authorize#create'
   get '/api/authorize/:auth_id/status', to: 'api/authorize#status'
-  
+
   # Popup authorization flow
-  # Place callback before dynamic segment so "/callback" doesn't match :auth_id
-  get '/popup/authorize/callback', to: 'popup/authorize#callback'
   get '/popup/authorize/:auth_id', to: 'popup/authorize#show', constraints: { auth_id: /[0-9a-f\-]{36}/ }
 
   # Admin
