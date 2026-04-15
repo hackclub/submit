@@ -1,5 +1,8 @@
 class OmniauthCallbacksController < ApplicationController
-  skip_forgery_protection only: [:hack_club, :failure]
+  # OmniAuth callbacks arrive as redirects from the external OAuth provider,
+  # so they cannot carry a Rails CSRF token. This is standard for OmniAuth.
+  # The OAuth state parameter (managed by OmniAuth) provides equivalent protection.
+  skip_forgery_protection only: [:hack_club, :failure] # CodeQL: intentional
 
   # GET /auth/hack_club/callback
   def hack_club

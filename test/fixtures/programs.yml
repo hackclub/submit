@@ -1,7 +1,7 @@
 test_program:
   slug: test-program
   name: Test Program
-  form_url: https://airtable.com/test-form
+  form_url: https://forms.hackclub.com/test-form
   owner_email: admin@example.com
   active: true
   api_key: pk_test_abc123
@@ -16,7 +16,7 @@ test_program:
 inactive_program:
   slug: inactive-program
   name: Inactive Program
-  form_url: https://airtable.com/inactive-form
+  form_url: https://forms.hackclub.com/inactive-form
   owner_email: admin@example.com
   active: false
   api_key: pk_test_inactive
