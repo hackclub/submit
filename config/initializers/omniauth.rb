@@ -9,6 +9,7 @@ end
 
 # Allow GET requests to the request phase (needed for redirects and URL endpoint)
 OmniAuth.config.allowed_request_methods = %i[get post]
+OmniAuth.config.silence_get_warning = true
 
 # Ensure correct callback URL behind reverse proxies
 OmniAuth.config.full_host = ENV['NEXTAUTH_URL'] if ENV['NEXTAUTH_URL'].present?

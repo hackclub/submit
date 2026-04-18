@@ -99,22 +99,33 @@ class UserJourneyFlow
         'email' => 'Email',
         'birthday' => 'Birthday',
         'phone_number' => 'Phone+Number',
-        'addresses' => 'Address',
         'slack_id' => 'Slack+ID'
       }
       default_fields.each do |field, airtable_name|
         next unless scope_enabled.call(field)
         value = user_data[field]
-        # Flatten addresses to a single string for form prefill
-        if field == 'addresses' && value.is_a?(Array)
-          addr = value.first
-          if addr.is_a?(Hash)
-            parts = [addr['line_1'], addr['line_2'], addr['city'], addr['state'], addr['postal_code'], addr['country']].compact.reject(&:blank?)
-            value = parts.join(', ')
-          end
-        end
         key = is_airtable ? "prefill_#{airtable_name}" : field
         append_param.call(key, value)
+      end
+
+      # Address: expand primary address into individual fields
+      if scope_enabled.call('addresses')
+        addrs = user_data['addresses']
+        addr = addrs.is_a?(Array) ? addrs.first : nil
+        if addr.is_a?(Hash)
+          address_fields = {
+            'address_line_1' => 'line_1',
+            'address_line_2' => 'line_2',
+            'address_city' => 'city',
+            'address_state' => 'state',
+            'address_zip' => 'postal_code',
+            'address_country' => 'country'
+          }
+          address_fields.each do |param_name, addr_key|
+            key = is_airtable ? "prefill_#{param_name}" : param_name
+            append_param.call(key, addr[addr_key])
+          end
+        end
       end
     end
 

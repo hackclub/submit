@@ -248,12 +248,8 @@ class OmniauthCallbacksController < ApplicationController
 
   def extract_user_data(auth)
     raw = auth.extra.raw_info
-    granted_scopes = auth.extra.scopes
     # The API returns { "identity": { ... } } — extract the identity hash
     identity = raw.is_a?(Hash) && raw.key?('identity') ? raw['identity'] : raw
-    Rails.logger.info("[OmniAuth] granted scopes: #{granted_scopes.inspect}")
-    Rails.logger.info("[OmniAuth] identity keys: #{identity.keys.inspect rescue 'N/A'}")
-    Rails.logger.info("[OmniAuth] birthday=#{identity['birthday'].inspect} addresses=#{identity['addresses'].inspect}")
     IdentityNormalizer.normalize(identity)
   end
 
