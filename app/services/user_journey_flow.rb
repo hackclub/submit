@@ -92,16 +92,29 @@ class UserJourneyFlow
         append_param.call(key, value)
       end
     else
-      if is_airtable
-        append_param.call('prefill_Full+Name', user_data['full_name']) if scope_enabled.call('full_name')
-        append_param.call('prefill_First+Name', user_data['first_name']) if scope_enabled.call('first_name')
-        append_param.call('prefill_Last+Name', user_data['last_name']) if scope_enabled.call('last_name')
-        append_param.call('prefill_Email', user_data['email']) if scope_enabled.call('email')
-      else
-        append_param.call('full_name', user_data['full_name']) if scope_enabled.call('full_name')
-        append_param.call('first_name', user_data['first_name']) if scope_enabled.call('first_name')
-        append_param.call('last_name', user_data['last_name']) if scope_enabled.call('last_name')
-        append_param.call('email', user_data['email']) if scope_enabled.call('email')
+      default_fields = {
+        'full_name' => 'Full+Name',
+        'first_name' => 'First+Name',
+        'last_name' => 'Last+Name',
+        'email' => 'Email',
+        'birthday' => 'Birthday',
+        'phone_number' => 'Phone+Number',
+        'addresses' => 'Address',
+        'slack_id' => 'Slack+ID'
+      }
+      default_fields.each do |field, airtable_name|
+        next unless scope_enabled.call(field)
+        value = user_data[field]
+        # Flatten addresses to a single string for form prefill
+        if field == 'addresses' && value.is_a?(Array)
+          addr = value.first
+          if addr.is_a?(Hash)
+            parts = [addr['line_1'], addr['line_2'], addr['city'], addr['state'], addr['postal_code'], addr['country']].compact.reject(&:blank?)
+            value = parts.join(', ')
+          end
+        end
+        key = is_airtable ? "prefill_#{airtable_name}" : field
+        append_param.call(key, value)
       end
     end
 
