@@ -192,7 +192,7 @@ components:
     bearerAuth:
       type: http
       scheme: bearer
-      description: Program API key, sent as `Authorization: Bearer <api_key>`.
+      description: "Program API key, sent as `Authorization: Bearer <api_key>`."
 
   schemas:
     AuthorizeCreateResponse:
