@@ -1,5 +1,6 @@
 Rails.application.routes.draw do
   root 'home#index'
+  get '/openapi.yaml', to: 'home#openapi'
   # L4/L7 health check (no DB)
   get '/healthz', to: 'health#show'
 
