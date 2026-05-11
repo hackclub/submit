@@ -3,8 +3,9 @@ class HomeController < ApplicationController
   end
 
   def openapi
-    send_file Rails.root.join('docs', 'openapi.yaml'),
+    send_data Rails.root.join('docs', 'openapi.yaml').read,
               type: 'application/yaml',
-              disposition: 'inline'
+              disposition: 'inline',
+              filename: 'openapi.yaml'
   end
 end
