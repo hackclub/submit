@@ -1,0 +1,275 @@
+openapi: 3.0.3
+info:
+  title: Submit Open API
+  description: |
+    API for Hack Club's identity verification and authorization flow.
+
+    Two flows are supported:
+      - **Authorize flow** (`/api/authorize`): server-to-server, authenticated with a
+        program API key. Creates a popup URL the end user opens to consent, then the
+        program polls `/api/authorize/{auth_id}/status` until the request completes.
+      - **Verify flow** (`/api/verify`): browser-side, called with a single-use
+        `submit_id` token bound to an `idv_rec` (and optionally a program). Confirms
+        the supplied first/last name and email match the identity on file.
+  version: "1.0.0"
+servers:
+  - url: https://submit.hackclub.com
+    description: Production
+  - url: http://localhost:3000
+    description: Local development
+
+tags:
+  - name: Authorize
+    description: Server-to-server authorization requests using a program API key.
+  - name: Verify
+    description: Browser-side verification of an identity record.
+
+paths:
+  /api/authorize:
+    post:
+      tags: [Authorize]
+      summary: Create authorization request
+      description: |
+        Creates a new authorization request scoped to the program identified by the
+        bearer API key. Returns a popup URL the end user must open to complete
+        identity authorization. Requests expire after 15 minutes.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Authorization request created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthorizeCreateResponse'
+        '401':
+          description: Missing, invalid, or inactive API key.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/authorize/{auth_id}/status:
+    get:
+      tags: [Authorize]
+      summary: Check authorization status
+      description: |
+        Polls the status of a previously-created authorization request. Returns
+        `202 Accepted` while the request is pending, and `200 OK` once it is
+        completed, expired, or failed.
+
+        On the first response with `status = completed`, the request is marked as
+        consumed; subsequent calls return `403 Forbidden`. Requests older than 15
+        minutes are automatically transitioned to `expired`.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: auth_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: The `auth_id` returned from `POST /api/authorize`.
+      responses:
+        '200':
+          description: Authorization is completed, expired, or failed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthorizeStatusResponse'
+        '202':
+          description: Authorization is still pending.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthorizeStatusResponse'
+        '401':
+          description: Missing, invalid, or inactive API key.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: API key does not own this request, or the result has already been consumed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: No authorization request found for the given `auth_id`.
+
+  /api/verify:
+    get:
+      tags: [Verify]
+      summary: Verify session
+      description: |
+        Verifies that the supplied first name, last name, and email match the
+        identity record (`idv_rec`) on file in the Identity Vault, and that the
+        identity is verified and YSWS-eligible.
+
+        The `submit_id` token is single-use and must have been authorized for the
+        same `idv_rec` (and program, when supplied). The token is consumed on a
+        successful verified response.
+
+        `idv_rec` may be passed either as `idv_rec=...&submit_id=...` or as a
+        combined `idv_rec=IDENTITY:SUBMIT` value.
+      parameters:
+        - name: idv_rec
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Identity record ID. May be combined with `submit_id` as `IDV:SUBMIT`.
+        - name: submit_id
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Single-use submit token. Required unless embedded in `idv_rec`.
+        - name: first_name
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: last_name
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: email
+          in: query
+          required: true
+          schema:
+            type: string
+            format: email
+        - name: program
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Program slug. Restricts which identity fields are returned.
+      responses:
+        '200':
+          description: Verification was attempted. `verified` indicates the result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VerifyResponse'
+        '400':
+          description: Missing required parameters.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VerifyResponse'
+        '403':
+          description: Submit token missing or not authorized for this identity/program.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VerifyResponse'
+        '404':
+          description: Program not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VerifyResponse'
+        '410':
+          description: Submit token has already been used.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VerifyResponse'
+        '500':
+          description: Server configuration error or upstream identity API failure.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VerifyResponse'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: Program API key, sent as `Authorization: Bearer <api_key>`.
+
+  schemas:
+    AuthorizeCreateResponse:
+      type: object
+      required: [auth_id, popup_url, status, expires_at]
+      properties:
+        auth_id:
+          type: string
+          format: uuid
+          description: Identifier for polling status.
+        popup_url:
+          type: string
+          format: uri
+          description: URL the end user opens to complete authorization.
+        status:
+          type: string
+          enum: [pending]
+        expires_at:
+          type: string
+          format: date-time
+
+    AuthorizeStatusResponse:
+      type: object
+      required: [auth_id, status, created_at, program, verified]
+      properties:
+        auth_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [pending, completed, expired, failed]
+        created_at:
+          type: string
+          format: date-time
+        program:
+          type: string
+          description: Program slug the authorization is scoped to.
+        verified:
+          type: boolean
+        idv_rec:
+          type: string
+          description: Identity record ID. Present when `status = completed`.
+        completed_at:
+          type: string
+          format: date-time
+          description: Present when `status = completed`.
+        identity_response:
+          type: object
+          additionalProperties: true
+          nullable: true
+          description: |
+            Identity fields, filtered by the program's allowed scopes. Present when
+            `status = completed`; `null` otherwise.
+        error:
+          type: string
+          description: Present when `status` is `expired` or `failed`.
+
+    VerifyResponse:
+      type: object
+      required: [verified]
+      properties:
+        verified:
+          type: boolean
+        error:
+          type: string
+        identity_response:
+          type: object
+          additionalProperties: true
+          nullable: true
+          description: |
+            Identity fields, filtered by the program's allowed scopes when a
+            `program` was supplied. Defaults to `id`, `verification_status`,
+            `ysws_eligible`, and `email` when no program is provided.
+
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string

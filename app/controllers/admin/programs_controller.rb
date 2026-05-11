@@ -64,7 +64,7 @@ class Admin::ProgramsController < Admin::BaseController
   def destroy
     @program.destroy
     flash[:success] = 'Program deleted.'
-    redirect_to admin_programs_path
+    redirect_to admin_programs_path, status: :see_other
   end
 
   private

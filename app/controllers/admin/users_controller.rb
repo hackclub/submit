@@ -43,11 +43,11 @@ class Admin::UsersController < Admin::BaseController
   def destroy
     @user = AdminUser.find(params[:id])
     if @user == current_admin
-      redirect_to admin_users_path, alert: 'Cannot delete yourself.'
+      redirect_to admin_users_path, alert: 'Cannot delete yourself.', status: :see_other
     else
       @user.destroy
       flash[:success] = 'Admin user removed.'
-      redirect_to admin_users_path
+      redirect_to admin_users_path, status: :see_other
     end
   end
 
