@@ -20,7 +20,6 @@ class Admin::ProgramsController < Admin::BaseController
   attrs = program_params
   coerce_boolean_scopes!(attrs)
   parse_mappings_json!(attrs)
-  restrict_sensitive_scopes_for_author!(attrs)
   # owner_email must always be present
   if current_admin&.ysws_author?
     attrs[:owner_email] = current_admin.email
@@ -50,7 +49,6 @@ class Admin::ProgramsController < Admin::BaseController
     parse_mappings_json!(attrs)
     # ysws_author cannot change ownership
     attrs.delete(:owner_email) if current_admin&.ysws_author?
-    restrict_sensitive_scopes_for_author!(attrs, existing: @program)
     # Prevent clearing owner_email
     attrs[:owner_email] = @program.owner_email if attrs[:owner_email].blank?
     if @program.update(attrs)
@@ -114,28 +112,6 @@ class Admin::ProgramsController < Admin::BaseController
       @program ||= Program.new
       @program.errors.add(:mappings, 'must be valid JSON object')
     end
-  end
-
-  # Prevent ysws_author from enabling sensitive scopes (birthday, phone_number, addresses)
-  def restrict_sensitive_scopes_for_author!(attrs, existing: nil)
-    return unless current_admin&.ysws_author?
-  scopes = attrs[:scopes].is_a?(Hash) ? attrs[:scopes] : {}
-  return if scopes.empty?
-    sensitive = %w[birthday phone_number addresses]
-    sensitive.each do |k|
-      next unless scopes.key?(k)
-      proposed = ActiveModel::Type::Boolean.new.cast(scopes[k])
-      if proposed
-        # Allow enabling only if the existing record already had it on (i.e., unchanged true)
-        prev_on = existing ? ActiveModel::Type::Boolean.new.cast(existing.scopes.to_h[k]) : false
-        unless prev_on
-          # Reject by forcing false and adding an error message for UX
-          scopes[k] = false
-          (@program || existing || Program.new).errors.add(:scopes, "#{k.humanize} can only be enabled by an admin")
-        end
-      end
-    end
-    attrs[:scopes] = scopes
   end
 
   def authorize_create!
