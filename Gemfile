@@ -19,6 +19,10 @@ gem 'inline_svg'
 gem 'omniauth-hack_club'
 gem 'omniauth-rails_csrf_protection'
 
+# Rails 7.1 is incompatible with these transitive majors (Rails 7.2 pins the same).
+gem 'minitest', '< 6'
+gem 'connection_pool', '< 3'
+
 group :development, :test do
   gem 'debug'
   gem "hotwire-livereload", "~> 2.0"
