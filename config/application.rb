@@ -14,7 +14,7 @@ Bundler.require(*Rails.groups)
 
 module SubmitRuby
   class Application < Rails::Application
-    config.load_defaults 7.1
+    config.load_defaults 8.1
 
     # Basic, minimal stack
     config.generators.system_tests = nil
