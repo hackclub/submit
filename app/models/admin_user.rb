@@ -13,7 +13,7 @@
 #  index_admin_users_on_email  (email) UNIQUE
 #
 class AdminUser < ApplicationRecord
-  enum role: { admin: 0, superadmin: 1, ysws_author: 2 }
+  enum :role, { admin: 0, superadmin: 1, ysws_author: 2 }
 
   # Normalize email to avoid case/whitespace duplicates leaking past DB/index
   before_validation do

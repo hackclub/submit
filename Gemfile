@@ -1,6 +1,6 @@
 source 'https://rubygems.org'
 
-gem 'rails', '~> 7.1.3'
+gem 'rails', '~> 8.1.0'
 gem 'puma', '~> 6.4'
 gem 'sprockets-rails'
 gem 'importmap-rails'
@@ -19,7 +19,7 @@ gem 'inline_svg'
 gem 'omniauth-hack_club'
 gem 'omniauth-rails_csrf_protection'
 
-# Rails 7.1 is incompatible with these transitive majors (Rails 7.2 pins the same).
+# Pin transitive majors that Rails does not yet support.
 gem 'minitest', '< 6'
 gem 'connection_pool', '< 3'
 

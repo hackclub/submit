@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM ruby:3.2-slim AS build
+FROM ruby:3.4-slim AS build
 
 ENV BUNDLE_DEPLOYMENT=1 \
     BUNDLE_WITHOUT="development test" \
@@ -23,7 +23,7 @@ COPY . .
 
 RUN SECRET_KEY_BASE=dummy bundle exec rake assets:precompile
 
-FROM ruby:3.2-slim AS app
+FROM ruby:3.4-slim AS app
 
 ENV RAILS_ENV=production \
     RACK_ENV=production \
