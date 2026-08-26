@@ -47,7 +47,7 @@ class OmniauthCallbacksController < ApplicationController
     if user_data['rejection_reason']
       return oauth_fail(
         reason: 'rejected',
-        alert_message: 'Your submission got rejected! Go to account.hackclub.com for more info.',
+        alert_message: 'Your submission got rejected! Go to auth.hackclub.com for more info.',
         program: program_slug,
         idv_rec: user_data['id'].to_s,
         email: user_data['email'],
@@ -69,7 +69,7 @@ class OmniauthCallbacksController < ApplicationController
     unless user_data['verification_status'] == 'verified'
       return oauth_fail(
         reason: 'missing_approved_verification',
-        alert_message: "We couldn't find an approved verification yet. Visit account.hackclub.com for more information.",
+        alert_message: "We couldn't find an approved verification yet. Visit auth.hackclub.com for more information.",
         program: program_slug,
         idv_rec: user_data['id'].to_s,
         email: user_data['email'],
@@ -180,9 +180,9 @@ class OmniauthCallbacksController < ApplicationController
       when 'pending'
         'Your identity verification is pending. Please wait for approval.'
       when 'rejected'
-        'Your submission was rejected. Visit account.hackclub.com for more info.'
+        'Your submission was rejected. Visit auth.hackclub.com for more info.'
       else
-        "We couldn't find an approved verification yet. Visit account.hackclub.com for more information."
+        "We couldn't find an approved verification yet. Visit auth.hackclub.com for more information."
       end
       return render 'popup/authorize/error', locals: { message: message }, layout: 'application'
     end
