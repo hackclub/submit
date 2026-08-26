@@ -1,6 +1,6 @@
 # Hack Club Submit – Copilot instructions
 ## Overview
-- Rails 7.1 app that mirrors the old Next.js Submit flow; root landing is `ProgramsController#show` keyed by slug (`/:program`) and everything pivots around OAuth with Hack Club Account.
+- Rails 7.1 app that mirrors the old Next.js Submit flow; root landing is `ProgramsController#show` keyed by slug (`/:program`) and everything pivots around OAuth with Hack Club Auth.
 - Primary controllers: `app/controllers/identity_controller.rb` (browser OAuth), `app/controllers/api/verify_controller.rb` (server-side verification), and `app/controllers/popup/authorize_controller.rb` (partner popup flow).
 - Reuse the helpers in `UserJourneyFlow` and `StateToken`; they already encode/validate OAuth state and map identity data onto third-party form URLs.
 

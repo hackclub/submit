@@ -1,6 +1,6 @@
 # Hack Club Submit
 
-A lightweight Rails app that powers Hack Club's Submit flow. It handles OAuth with Hack Club Account, issues short-lived tokens, and lets YSWS sites pre-fill forms with verified Identity Vault info.
+A lightweight Rails app that powers Hack Club's Submit flow. It handles OAuth with Hack Club Auth, issues short-lived tokens, and lets YSWS sites pre-fill forms with verified Identity Vault info.
 
 ## What you get
 
@@ -35,7 +35,7 @@ Set these environment variables (shell, `.env`, or your process manager):
 ## How the flow works
 
 1. Program pages seed a `submit_id` and log the visit.
-2. Identity endpoints build OAuth state with `StateToken` and redirect to Hack Club Account.
+2. Identity endpoints build OAuth state with `StateToken` and redirect to Hack Club Auth.
 3. The callback fetches and normalizes identity via `IdentityNormalizer`, then redirects or issues a token.
 4. Partners call `POST /api/verify` with that token to validate the submission.
 
