@@ -229,7 +229,7 @@ GEM
       prettyprint
     prettyprint (0.2.0)
     prism (1.9.0)
-    puma (6.6.1)
+    puma (7.2.1)
       nio4r (~> 2.0)
     racc (1.8.1)
     rack (3.2.7)
@@ -365,7 +365,7 @@ DEPENDENCIES
   omniauth-hack_club
   omniauth-rails_csrf_protection
   pg (~> 1.5)
-  puma (~> 6.4)
+  puma (~> 7.2)
   rack-attack
   rack-timeout
   rails (~> 8.1.0)
